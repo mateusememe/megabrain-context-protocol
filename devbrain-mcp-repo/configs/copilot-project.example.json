@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "devbrain": {
+      "type": "local",
+      "command": "uv",
+      "args": ["run", "devbrain-mcp"],
+      "env": {},
+      "tools": ["*"]
+    }
+  }
+}
