@@ -216,3 +216,15 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Artefatos editoriais e distribuíveis são publicados fora deste repositório.
+.DS_Store
+*.zip
+*.pdf
+*.pptx
+/DEVFEST-SUBMISSAO.md
+/GUIA-ALUNO.md
+/GUIA-INSTRUTOR.md
+/PRESENTACAO-REVISAO.md
+/REFERENCIAS.md
+/mcp-megabrain-course/
