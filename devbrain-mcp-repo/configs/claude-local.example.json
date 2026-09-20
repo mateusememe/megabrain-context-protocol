@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "devbrain": {
+      "command": "uv",
+      "args": ["run", "devbrain-mcp"]
+    }
+  }
+}

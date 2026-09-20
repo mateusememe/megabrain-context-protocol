@@ -1,0 +1,24 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: DevBrain MCP - workshop deployment (Python + uv)
+
+Resources:
+  DevBrainFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Runtime: python3.12
+      Handler: src.devbrain_mcp.lambda_app.handler
+      CodeUri: ..
+      MemorySize: 512
+      Timeout: 30
+      FunctionUrlConfig:
+        AuthType: NONE # WORKSHOP ONLY. Use auth in production.
+        Cors:
+          AllowOrigins: ['*']
+          AllowMethods: ['POST', 'GET', 'DELETE']
+          AllowHeaders: ['*']
+
+Outputs:
+  DevBrainMcpUrl:
+    Description: MCP Function URL (endpoint /mcp)
+    Value: !Sub '${DevBrainFunctionUrl.FunctionUrl}mcp'

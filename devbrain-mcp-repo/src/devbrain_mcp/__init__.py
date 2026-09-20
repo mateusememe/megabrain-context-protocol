@@ -1,0 +1,1 @@
+"""DevBrain MCP workshop package."""
