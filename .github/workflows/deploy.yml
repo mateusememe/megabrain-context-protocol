@@ -1,0 +1,47 @@
+name: Deploy AWS
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "devbrain-mcp-repo/src/**"
+      - "devbrain-mcp-repo/infrastructure/**"
+      - "devbrain-mcp-repo/pyproject.toml"
+      - "devbrain-mcp-repo/uv.lock"
+      - ".github/workflows/deploy.yml"
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: devbrain-mcp-repo
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - uses: aws-actions/setup-sam@v2
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: us-east-1
+      - run: uv python install 3.12
+      - run: uv sync
+      - run: uv run ruff check .
+      - run: uv run pytest -q
+      - name: Export runtime dependencies for SAM
+        run: uv export --no-dev --format requirements-txt --output-file requirements.txt
+      - run: sam build --template-file infrastructure/template.yaml
+      - run: >-
+          sam deploy
+          --stack-name devbrain-mcp
+          --resolve-s3
+          --capabilities CAPABILITY_IAM
+          --no-confirm-changeset
+          --no-fail-on-empty-changeset
