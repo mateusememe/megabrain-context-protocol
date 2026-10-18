@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "devbrain": {
+      "command": "uv",
+      "args": ["run", "devbrain-mcp"]
+    },
+    "devbrain-cloud-run": {
+      "httpUrl": "http://localhost:8080/mcp"
+    }
+  }
+}

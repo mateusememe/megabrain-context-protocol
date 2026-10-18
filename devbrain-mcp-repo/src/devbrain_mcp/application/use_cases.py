@@ -1,4 +1,4 @@
-"""Casos de uso independentes de MCP, HTTP e AWS."""
+"""Casos de uso independentes de MCP, HTTP e nuvem."""
 
 from __future__ import annotations
 

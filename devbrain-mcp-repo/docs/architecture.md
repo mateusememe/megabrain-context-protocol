@@ -8,7 +8,7 @@ negócio.
 ```text
                     adaptadores de entrada
   stdio ───────┐  src/.../adapters/inbound/mcp.py  ┌────── Streamable HTTP
-  MCP host ────┼────────── Tools / Resource / Prompt ┼────── Lambda + Mangum
+  MCP host ────┼────────── Tools / Resource / Prompt ┼────── Cloud Run (container)
                │                                      │
                └───────────────┬──────────────────────┘
                                │
@@ -28,7 +28,7 @@ negócio.
 
 | Onde | Responsabilidade | Não deve conhecer |
 |---|---|---|
-| `domain/review.py` | regras determinísticas e modelos de resultado | MCP, HTTP, AWS, filesystem |
+| `domain/review.py` | regras determinísticas e modelos de resultado | MCP, HTTP, nuvem, filesystem |
 | `application/use_cases.py` | orquestra os casos de uso | decorators MCP e transporte |
 | `application/ports.py` | contrato para obter diretrizes | implementação concreta |
 | `adapters/inbound/mcp.py` | compõe as primitives MCP | regras de decisão detalhadas |
@@ -37,7 +37,7 @@ negócio.
 | `adapters/inbound/prompts.py` | templates/workflows explícitos | regra de domínio detalhada |
 | `adapters/outbound/static_guidelines.py` | fonte local do laboratório | protocolo MCP |
 | `server.py` | composition root e stdio | regras de negócio |
-| `http.py` e `lambda_app.py` | adaptadores de transporte | regras de negócio |
+| `http.py` e `cloud_run.py` | adaptadores de transporte | regras de negócio |
 
 ## Fluxo de uma tool
 

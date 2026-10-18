@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "devbrain": {
+      "command": "uv",
+      "args": ["run", "devbrain-mcp"],
+      "cwd": "/CAMINHO/ABSOLUTO/devbrain-mcp-repo"
+    },
+    "devbrain-cloud-run": {
+      "serverUrl": "http://localhost:8080/mcp"
+    }
+  }
+}

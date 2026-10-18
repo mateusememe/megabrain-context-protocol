@@ -7,7 +7,6 @@ requires-python = ">=3.12"
 dependencies = [
   "mcp[cli]>=2.0.0,<3",
   "pydantic>=2.12,<3",
-  "mangum>=0.19,<1",
 ]
 
 [dependency-groups]
@@ -20,6 +19,7 @@ dev = [
 [project.scripts]
 devbrain-mcp = "devbrain_mcp.server:main"
 devbrain-mcp-http = "devbrain_mcp.http:main"
+devbrain-mcp-cloudrun = "devbrain_mcp.cloud_run:main"
 
 [build-system]
 requires = ["hatchling"]

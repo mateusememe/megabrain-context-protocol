@@ -1,4 +1,4 @@
-name: Deploy AWS
+name: Deploy Cloud Run
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     branches: [main]
     paths:
       - "devbrain-mcp-repo/src/**"
-      - "devbrain-mcp-repo/infrastructure/**"
+      - "devbrain-mcp-repo/Dockerfile"
       - "devbrain-mcp-repo/pyproject.toml"
       - "devbrain-mcp-repo/uv.lock"
       - ".github/workflows/deploy.yml"
@@ -15,8 +15,18 @@ permissions:
   id-token: write
   contents: read
 
+concurrency:
+  group: deploy-cloud-run
+  cancel-in-progress: false
+
+env:
+  SERVICE: devbrain-mcp
+  IMAGE: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/devbrain/devbrain-mcp:${{ github.sha }}
+
 jobs:
   deploy:
+    # Fica desligado até infrastructure/gcp/bootstrap.sh cadastrar as variables do repositório.
+    if: vars.GCP_PROJECT_ID != ''
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -26,22 +36,29 @@ jobs:
       - uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
-      - uses: aws-actions/setup-sam@v2
-      - uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
-          aws-region: us-east-1
       - run: uv python install 3.12
-      - run: uv sync
+      - run: uv sync --locked
       - run: uv run ruff check .
       - run: uv run pytest -q
-      - name: Export runtime dependencies for SAM
-        run: uv export --no-dev --format requirements-txt --output-file requirements.txt
-      - run: sam build --template-file infrastructure/template.yaml
-      - run: >-
-          sam deploy
-          --stack-name devbrain-mcp
-          --resolve-s3
-          --capabilities CAPABILITY_IAM
-          --no-confirm-changeset
-          --no-fail-on-empty-changeset
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - run: gcloud auth configure-docker "${{ vars.GCP_REGION }}-docker.pkg.dev" --quiet
+      - run: docker build --tag "$IMAGE" .
+      - run: docker push "$IMAGE"
+      - name: Deploy no Cloud Run (privado por padrão)
+        run: >-
+          gcloud run deploy "$SERVICE"
+          --project "${{ vars.GCP_PROJECT_ID }}"
+          --region "${{ vars.GCP_REGION }}"
+          --image "$IMAGE"
+          --service-account "${{ vars.GCP_RUNTIME_SERVICE_ACCOUNT }}"
+          --port 8080
+          --cpu 1
+          --memory 512Mi
+          --min-instances 0
+          --max-instances 3
+          --timeout 30
+          --no-allow-unauthenticated

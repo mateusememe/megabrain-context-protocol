@@ -1,6 +1,6 @@
 # MCP — MegaBrain Context Protocol / DevBrain MCP
 
-Repositório hands-on do minicurso. A trilha é **função Python -> MCP Server -> teste -> host -> Streamable HTTP -> CI/CD -> AWS**.
+Repositório hands-on do minicurso. A trilha é **função Python -> MCP Server -> teste -> host -> Streamable HTTP -> CI/CD -> Google Cloud Run**.
 
 ## Navegação do minicurso
 
@@ -14,9 +14,10 @@ Repositório hands-on do minicurso. A trilha é **função Python -> MCP Server 
 | preparar o notebook | `docs/setup.md` |
 | conduzir a aula/failsafes | `docs/workshop.md` e `docs/troubleshooting.md` |
 | conferir o que foi validado | `docs/content-review.md` |
+| publicar no Google Cloud | `infrastructure/gcp/` e `docs/deploy-gcp.md` |
 
 `server.py` é somente o composition root do stdio. A estrutura é hexagonal enxuta:
-adaptadores MCP/HTTP/Lambda chamam casos de uso; estes chamam regras puras de domínio.
+adaptadores MCP/HTTP/Cloud Run chamam casos de uso; estes chamam regras puras de domínio.
 
 ## Stack
 
@@ -25,7 +26,7 @@ adaptadores MCP/HTTP/Lambda chamam casos de uso; estes chamam regras puras de do
 - MCP Python SDK v2 (`mcp[cli]`)
 - Pydantic para modelos/saídas tipadas
 - pytest + MCP `Client` in-process para testes
-- AWS SAM + Lambda Function URL para o deploy didático
+- Docker + Google Cloud Run (Artifact Registry, Cloud Build e Workload Identity Federation) para o deploy didático
 
 ## Pré-requisitos
 
@@ -34,8 +35,8 @@ adaptadores MCP/HTTP/Lambda chamam casos de uso; estes chamam regras puras de do
 - VS Code ou editor equivalente
 - Node.js (necessário apenas para o MCP Inspector)
 - conta GitHub
-- Opcional: Claude Code, GitHub Copilot ou Codex com suporte a MCP
-- Opcional para deploy: conta AWS + AWS SAM CLI
+- Opcional: Google Antigravity IDE ou CLI (ou outro host MCP: Gemini CLI, Claude Code, GitHub Copilot, Codex)
+- Opcional para deploy: projeto Google Cloud com billing + Google Cloud CLI (`gcloud`)
 
 > Você não precisa instalar Python manualmente: `uv` pode instalar a versão fixada em `.python-version`.
 
@@ -82,19 +83,49 @@ O exemplo usa Streamable HTTP stateless, alinhado ao core MCP 2026-07-28 e
 adequado a um laboratório serverless. `uv run devbrain-mcp-http` permanece como
 atalho equivalente para a demo local.
 
-## 5. Claude Code
+## 5. Google Antigravity (IDE e CLI)
 
-Local:
+O repositório já traz a configuração de workspace em `.agents/mcp_config.json`, lida
+pelo **Antigravity IDE** e pelo **Antigravity CLI** (`agy`) quando o workspace aberto é
+esta pasta. Nada a instalar além do próprio Antigravity:
 
-```bash
-claude mcp add devbrain -- uv run devbrain-mcp
+```json
+{
+  "mcpServers": {
+    "devbrain": { "command": "uv", "args": ["run", "devbrain-mcp"] },
+    "devbrain-cloud-run": { "serverUrl": "http://localhost:8080/mcp", "disabled": true }
+  }
+}
 ```
 
-Remoto:
+**Antigravity CLI**
 
 ```bash
-claude mcp add --transport http devbrain https://SEU-ENDPOINT/mcp
+cd devbrain-mcp-repo
+agy            # dentro da sessão, digite /mcp para ver o devbrain conectado
 ```
+
+Para registrar globalmente (vale em qualquer pasta), use caminho absoluto:
+
+```bash
+agy mcp add devbrain -- uv --directory "$PWD" run devbrain-mcp
+agy mcp list
+```
+
+**Antigravity IDE**
+
+1. Abra a pasta `devbrain-mcp-repo` como workspace.
+2. No painel do agente: `…` → **MCP Servers** → **Manage MCP Servers** (ou **View raw config**).
+3. Em **Settings → Customizations → Installed MCP Servers**, clique em **Refresh**.
+4. Na primeira chamada de tool, o Antigravity pede aprovação: escolha **allow**.
+
+Remoto (Cloud Run): com o túnel da seção 8 aberto, troque `"disabled": true` para
+`false` em `devbrain-cloud-run`, ou rode `agy mcp add devbrain-cloud-run http://localhost:8080/mcp`.
+Exemplo para `~/.gemini/config/mcp_config.json` em `configs/antigravity-global.example.json`.
+
+Outros hosts usam a mesma ideia: `gemini mcp add devbrain uv run devbrain-mcp`
+(Gemini CLI, exemplo em `configs/gemini-project.example.json`) ou
+`claude mcp add devbrain -- uv run devbrain-mcp` (Claude Code).
 
 ## 6. GitHub Copilot
 
@@ -110,17 +141,23 @@ uv run devbrain-mcp
 
 Para remoto, a URL termina em `/mcp`.
 
-## 8. AWS com SAM
+## 8. Google Cloud Run
 
-> `AuthType: NONE` existe apenas para reduzir atrito no workshop. **Não copie esse padrão para dados ou ações reais.**
+O `Dockerfile` empacota o servidor com `uv`; o Cloud Run injeta `PORT` e o entrypoint
+`devbrain-mcp-cloudrun` sobe o Streamable HTTP stateless. O serviço é **privado por
+padrão** (IAM): nada de URL pública sem autenticação.
 
 ```bash
-uv export --no-dev --format requirements-txt --output-file requirements.txt
-sam build --template-file infrastructure/template.yaml
-sam deploy --guided
+export GCP_PROJECT_ID=seu-projeto
+./infrastructure/gcp/bootstrap.sh   # APIs, Artifact Registry e service account (uma vez)
+./infrastructure/gcp/deploy.sh      # Cloud Build + Cloud Run, sem Docker local
+
+# túnel autenticado com a sua conta gcloud
+gcloud run services proxy devbrain-mcp --region southamerica-east1 --port 8080
 ```
 
-Depois conecte a Function URL (`.../mcp`) ao host escolhido.
+Depois conecte o host em `http://localhost:8080/mcp`. Passo a passo, GitHub Actions
+e custos em `docs/deploy-gcp.md`.
 
 ## Exercício principal
 
@@ -149,6 +186,7 @@ uv run ruff check .         # lint
 uv run mcp dev ...          # Inspector
 uv run devbrain-mcp         # stdio
 uv run mcp run src/devbrain_mcp/server.py --transport streamable-http
+docker build -t devbrain-mcp . # imagem do Cloud Run
 ```
 
 ## Referências oficiais
@@ -158,6 +196,11 @@ uv run mcp run src/devbrain_mcp/server.py --transport streamable-http
 - MCP 2026-07-28: https://blog.modelcontextprotocol.io/posts/2026-07-28/
 - uv: https://docs.astral.sh/uv/
 - Anthropic launch: https://www.anthropic.com/news/model-context-protocol
+- Antigravity MCP: https://antigravity.google/docs/mcp
+- Gemini CLI MCP: https://github.com/google-gemini/gemini-cli/blob/main/docs/tools/mcp-server.md
 - Claude Code MCP: https://docs.anthropic.com/en/docs/claude-code/mcp
 - GitHub Copilot MCP: https://docs.github.com/copilot/how-tos/copilot-cli/customize-copilot/add-mcp-servers
-- AWS stateless MCP: https://aws.amazon.com/blogs/architecture/mcp-went-stateless-is-your-aws-mcp-server-deployment-well-architected/
+- Cloud Run — hospedar MCP servers: https://cloud.google.com/run/docs/host-mcp-servers
+- Cloud Run — deploy a partir do código-fonte: https://cloud.google.com/run/docs/deploying-source-code
+- `gcloud run services proxy`: https://cloud.google.com/sdk/gcloud/reference/run/services/proxy
+- Workload Identity Federation para GitHub Actions: https://github.com/google-github-actions/auth

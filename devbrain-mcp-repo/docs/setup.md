@@ -8,7 +8,7 @@
 - Node.js LTS ou atual **somente** para o MCP Inspector (`mcp dev` usa npx);
 - conta GitHub para os exercícios de CI/CD.
 
-Claude Code, GitHub Copilot, Codex, AWS SAM CLI e conta AWS são opcionais. O núcleo
+Antigravity IDE/CLI (ou outro host MCP), Google Cloud CLI e projeto Google Cloud são opcionais. O núcleo
 do workshop termina usando o Inspector e os testes automatizados, sem login externo.
 
 ## Golden path
@@ -44,5 +44,5 @@ em stdout no modo stdio, pois stdout pertence ao protocolo.
 ## Não faça no núcleo
 
 - não instale um host específico como dependência da aula;
-- não crie credenciais AWS para concluir o exercício;
+- não crie projeto, billing ou credenciais Google Cloud para concluir o exercício;
 - não execute deploy durante o troubleshooting de setup.

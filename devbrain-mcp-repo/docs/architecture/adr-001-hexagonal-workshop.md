@@ -7,14 +7,14 @@ Aceita.
 ## Contexto
 
 O minicurso atende até 30 pessoas, tem 3h30 e precisa demonstrar um servidor MCP
-testável por stdio, HTTP e Lambda. A versão inicial concentrava regra de negócio,
+testável por stdio, HTTP e Cloud Run. A versão inicial concentrava regra de negócio,
 contratos MCP e composition root em `server.py`, o que dificultava explicar testes
 sem transporte e a troca de fonte das diretrizes.
 
 ## Decisão
 
 Usar `domain/`, `application/` e `adapters/`. Há apenas uma porta de saída:
-`EngineeringGuidelinesPort`. MCP, HTTP e Lambda são adaptadores de entrada; o texto
+`EngineeringGuidelinesPort`. MCP, HTTP e Cloud Run são adaptadores de entrada; o texto
 fixo das diretrizes é um adapter de saída do laboratório.
 
 ## Alternativas consideradas

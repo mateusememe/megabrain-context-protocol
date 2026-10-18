@@ -8,7 +8,7 @@
 | tool não aparece | `uv run pytest -q` | conferir decorators em `adapters/inbound/` e reiniciar Inspector |
 | host não chama tool | listar no Inspector primeiro | demonstrar chamada manual e melhorar nome/docstring, sem forçar prompt |
 | porta HTTP ocupada | encerrar processo local anterior | manter a explicação remota e voltar ao Inspector |
-| AWS/SAM indisponível | não diagnosticar cloud no núcleo | usar diagrama e workflow; deploy fica para o instrutor/pós-evento |
+| `gcloud`/Cloud Run indisponível | não diagnosticar cloud no núcleo | usar diagrama e workflow; deploy fica para o instrutor/pós-evento |
 
 ## Checkpoints a preparar antes do evento
 
@@ -20,4 +20,4 @@ Publique tags ou branches a partir de commits verdes:
 4. `final`: HTTP, CI/CD e material de produção.
 
 Cada checkpoint precisa passar `uv run ruff check .` e `uv run pytest -q`.
-O servidor e o Inspector são a trilha obrigatória; host e AWS nunca bloqueiam a aula.
+O servidor e o Inspector são a trilha obrigatória; host e Google Cloud nunca bloqueiam a aula.

@@ -1,6 +1,6 @@
 """Regras determinísticas para avaliar mudanças de engenharia.
 
-Este módulo não conhece MCP, HTTP, AWS nem o modo como as diretrizes são
+Este módulo não conhece MCP, HTTP, nuvem nem o modo como as diretrizes são
 armazenadas. Isso permite exercitar as regras diretamente em testes unitários.
 """
 

@@ -8,7 +8,9 @@
 - [ ] Definir timeout e limites de tamanho
 - [ ] Redigir secrets de logs
 - [ ] Restringir hosts/origins em servidores HTTP
-- [ ] Autenticar/autorizar servidores remotos de produção
+- [ ] Autenticar/autorizar servidores remotos (Cloud Run privado + IAM, não `--allow-unauthenticated`)
+- [ ] Service account de runtime dedicada e sem papéis desnecessários
+- [ ] CI com Workload Identity Federation, sem chave JSON de service account
 - [ ] Exigir confirmação humana para operações irreversíveis
 - [ ] Tratar conteúdo externo como não confiável (prompt injection)
 - [ ] Testar tool descriptions contra instruções ambíguas ou maliciosas
