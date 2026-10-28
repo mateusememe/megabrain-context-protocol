@@ -1,17 +1,17 @@
-# Security checklist
+# Checklist de segurança
 
-- [ ] Menor privilégio para IAM e APIs downstream
-- [ ] Não expor uma tool genérica de shell/SQL quando uma capability específica resolve
-- [ ] Validar todo input; saída do LLM não é trust boundary
-- [ ] Separar read e write
-- [ ] Tornar writes idempotentes e usar chaves de idempotência quando necessário
-- [ ] Definir timeout e limites de tamanho
-- [ ] Redigir secrets de logs
-- [ ] Restringir hosts/origins em servidores HTTP
-- [ ] Autenticar/autorizar servidores remotos (Cloud Run privado + IAM, não `--allow-unauthenticated`)
-- [ ] Service account de runtime dedicada e sem papéis desnecessários
+- [ ] Menor privilégio para IAM e para as APIs que o servidor chama
+- [ ] Nada de tool genérica de shell ou SQL quando uma capability específica resolve
+- [ ] Validar toda entrada: o argumento de uma tool vem do modelo e não é confiável
+- [ ] Separar leitura de escrita
+- [ ] Escritas idempotentes, com chave de idempotência quando precisar
+- [ ] Timeout e limite de tamanho em tudo que vai para fora
+- [ ] Nenhum secret nos logs
+- [ ] Hosts e origins restritos nos servidores HTTP
+- [ ] Servidor remoto com autenticação e autorização (Cloud Run privado com IAM, nunca `--allow-unauthenticated`)
+- [ ] Service account de runtime dedicada, sem papéis sobrando
 - [ ] CI com Workload Identity Federation, sem chave JSON de service account
-- [ ] Exigir confirmação humana para operações irreversíveis
-- [ ] Tratar conteúdo externo como não confiável (prompt injection)
-- [ ] Testar tool descriptions contra instruções ambíguas ou maliciosas
-- [ ] Executar `uv lock` e versionar `uv.lock` antes do evento
+- [ ] Confirmação humana para operações irreversíveis
+- [ ] Conteúdo externo tratado como não confiável (prompt injection)
+- [ ] Descrições das tools testadas contra instruções ambíguas ou maliciosas
+- [ ] `uv.lock` gerado e versionado

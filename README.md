@@ -1,15 +1,21 @@
-# MegaBrain Context Protocol — DevBrain MCP
+# MegaBrain Context Protocol: DevBrain MCP
 
-Laboratório hands-on do minicurso MCP para o DevFest 2026. O código demonstra como
-transformar regras determinísticas em capabilities MCP reutilizáveis, usando Python,
-`uv`, MCP Python SDK v2 e uma arquitetura hexagonal enxuta.
+Laboratório do minicurso de MCP do DevFest 2026. Você vai pegar regras determinísticas
+de revisão de PR e transformar em capabilities MCP que qualquer host consegue
+descobrir e usar. A stack é Python, `uv`, MCP Python SDK v2 e uma arquitetura
+hexagonal pequena.
 
-O laboratório canônico está em [devbrain-mcp-repo](devbrain-mcp-repo/README.md):
+Comece por aqui:
 
-- [arquitetura hexagonal](devbrain-mcp-repo/docs/architecture.md);
-- [setup e golden path](devbrain-mcp-repo/docs/setup.md);
-- [roteiro do workshop](devbrain-mcp-repo/docs/workshop.md);
-- [troubleshooting](devbrain-mcp-repo/docs/troubleshooting.md).
+- [guia do aluno](GUIA-ALUNO.md): os labs, na ordem da aula;
+- [o código do laboratório](devbrain-mcp-repo/README.md);
+- [roteiro de testes](devbrain-mcp-repo/docs/roteiro-de-testes.md): do zero ao
+  Antigravity, comando por comando;
+- [tour do código](devbrain-mcp-repo/docs/tour-do-codigo.md): onde cada conceito de MCP
+  mora;
+- [arquitetura](devbrain-mcp-repo/docs/architecture.md);
+- [setup](devbrain-mcp-repo/docs/setup.md) e
+  [troubleshooting](devbrain-mcp-repo/docs/troubleshooting.md);
+- [referências oficiais](REFERENCIAS.md).
 
-Os binários, ZIPs, slides e guias editoriais do evento são artefatos de publicação e
-permanecem fora do controle de versão deste repositório.
+Slides, ZIPs e PDFs do evento são publicados à parte e não ficam neste repositório.

@@ -1,23 +1,15 @@
-# Troubleshooting e failsafe ao vivo
+# Troubleshooting
 
-| Sintoma | Diagnóstico rápido | Fallback seguro |
+| Sintoma | Como diagnosticar | O que fazer |
 |---|---|---|
-| `uv` não encontrado | `uv --version` | concluir instalação antes da aula; usar ZIP/repo já clonado |
-| Python ausente/errado | `uv python install 3.12` | `uv python pin 3.12`, depois `uv sync` |
-| Inspector não abre | `node --version`, depois `uv run mcp dev ...` | usar `uv run pytest -q` e mostrar o contrato pelo teste |
-| tool não aparece | `uv run pytest -q` | conferir decorators em `adapters/inbound/` e reiniciar Inspector |
-| host não chama tool | listar no Inspector primeiro | demonstrar chamada manual e melhorar nome/docstring, sem forçar prompt |
-| porta HTTP ocupada | encerrar processo local anterior | manter a explicação remota e voltar ao Inspector |
-| `gcloud`/Cloud Run indisponível | não diagnosticar cloud no núcleo | usar diagrama e workflow; deploy fica para o instrutor/pós-evento |
+| `uv` não encontrado | `uv --version` | termine a instalação do uv e abra um terminal novo |
+| Python ausente ou na versão errada | `uv python install 3.12` | `uv python pin 3.12`, depois `uv sync` |
+| Inspector não abre | `node --version`, depois `uv run mcp dev ...` | instale o Node.js; enquanto isso, rode `uv run pytest -q`, que testa o mesmo contrato |
+| tool não aparece | `uv run pytest -q` | confira os decorators em `adapters/inbound/` e reinicie o Inspector |
+| host não chama a tool | veja se ela aparece no Inspector primeiro | chame a tool à mão no Inspector e melhore nome e descrição antes de mexer no prompt |
+| porta HTTP ocupada | `lsof -i :8000` | encerre o processo anterior ou use outra porta |
+| Inspector mostra o repositório errado | o `DEVBRAIN_REPO_PATH` exportado não chega ao servidor no `mcp dev` | use `--config` com `env` explícito (veja o [roteiro de testes](roteiro-de-testes.md)) |
+| `gcloud` ou Cloud Run indisponível | o deploy é extra | ignore durante a aula; o núcleo não depende da nuvem |
 
-## Checkpoints a preparar antes do evento
-
-Publique tags ou branches a partir de commits verdes:
-
-1. `starter`: projeto com dependências e teste inicial;
-2. `checkpoint-1`: tools;
-3. `checkpoint-2`: resource + prompt + testes;
-4. `final`: HTTP, CI/CD e material de produção.
-
-Cada checkpoint precisa passar `uv run ruff check .` e `uv run pytest -q`.
-O servidor e o Inspector são a trilha obrigatória; host e Google Cloud nunca bloqueiam a aula.
+Antes de pedir ajuda, rode `uv run ruff check .` e `uv run pytest -q`. Se os dois
+passam, o servidor está bom, e o problema quase sempre está no host ou no Inspector.

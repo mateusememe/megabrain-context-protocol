@@ -1,7 +1,8 @@
-# Deploy no Google Cloud Run
+# Deploy no Google Cloud Run (extra)
 
-Módulo do instrutor. O núcleo do workshop não depende de nada aqui: alunos terminam o
-laboratório com Inspector e testes locais.
+Este guia é um extra para depois do curso. Nada do núcleo do workshop depende dele:
+você termina o laboratório com o Inspector e os testes locais. Se quiser ver o mesmo
+servidor rodando na nuvem, continue aqui.
 
 ```text
 LOCAL                              REMOTO
@@ -20,13 +21,13 @@ uv run devbrain-mcp                Cloud Run: devbrain-mcp-cloudrun
 |---|---|---|
 | Google Cloud CLI (`gcloud`) | bootstrap, deploy e túnel autenticado | `brew install --cask gcloud-cli` |
 | Docker | opcional: testar a imagem localmente | Docker Desktop |
-| Antigravity CLI (`agy`) | host MCP da demo no terminal | `brew install --cask antigravity-cli` |
-| Antigravity IDE | host MCP da demo no editor | `brew install --cask antigravity-ide` |
+| Antigravity CLI (`agy`) | host MCP no terminal | `brew install --cask antigravity-cli` |
+| Antigravity IDE | host MCP no editor | `brew install --cask antigravity-ide` |
 | Gemini CLI | opcional: host alternativo | `npm install -g @google/gemini-cli` |
 | GitHub CLI (`gh`) | opcional: cadastrar as variables do workflow | `brew install gh` |
 
-Também é preciso um projeto Google Cloud com **billing ativo**. Configure um alerta de
-orçamento antes do evento. Com `--min-instances 0`, o serviço só consome enquanto
+Você também precisa de um projeto Google Cloud com billing ativo. Configure um alerta
+de orçamento antes de começar. Com `--min-instances 0`, o serviço só custa enquanto
 recebe requests.
 
 ```bash
@@ -52,8 +53,9 @@ export GCP_REGION=southamerica-east1          # padrão: São Paulo
 ```
 
 O script habilita as APIs (Cloud Run, Artifact Registry, Cloud Build, IAM), cria o
-repositório Docker `devbrain` e a service account de runtime `devbrain-mcp-runtime`
-**sem papéis**: o servidor não acessa nenhum recurso do Google Cloud.
+repositório Docker `devbrain` e a service account de runtime `devbrain-mcp-runtime`,
+sem nenhum papel. O servidor não acessa recurso algum do Google Cloud, então não
+precisa de permissão.
 
 ## 3. Deploy manual
 
@@ -61,8 +63,9 @@ repositório Docker `devbrain` e a service account de runtime `devbrain-mcp-runt
 ./infrastructure/gcp/deploy.sh
 ```
 
-Usa `gcloud run deploy --source .`: o Cloud Build constrói o `Dockerfile`, então não
-é preciso ter Docker local. O serviço sobe **privado** (`--no-allow-unauthenticated`).
+O script usa `gcloud run deploy --source .`. Quem constrói o `Dockerfile` é o Cloud
+Build, então você não precisa de Docker local. O serviço sobe privado
+(`--no-allow-unauthenticated`).
 
 ## 4. Conectar o host
 
@@ -74,16 +77,16 @@ agy mcp add devbrain-cloud-run http://localhost:8080/mcp
 No Antigravity IDE, troque `"disabled": true` para `false` em `devbrain-cloud-run`
 (`.agents/mcp_config.json`) e clique em **Refresh** em Settings → Customizations.
 
-O proxy autentica com a sua conta `gcloud` e expõe o serviço em `localhost`. Na aula,
-isso mostra autenticação remota de verdade sem distribuir tokens.
+O proxy autentica com a sua conta `gcloud` e expõe o serviço em `localhost`. É
+autenticação remota de verdade, e ninguém precisa copiar token de lugar nenhum.
 
-Para uma URL pública **apenas durante a demo**:
+Se precisar de uma URL pública por alguns minutos:
 
 ```bash
 ALLOW_UNAUTHENTICATED=true ./infrastructure/gcp/deploy.sh
 ```
 
-Volte para o modo privado ao final (rode `deploy.sh` de novo sem a variável).
+Depois, volte para o modo privado rodando `deploy.sh` de novo, sem a variável.
 
 ## 5. Deploy contínuo com GitHub Actions
 
@@ -99,13 +102,14 @@ Com `GITHUB_REPO`, o bootstrap também cria:
 
 - service account `github-deployer` com `run.admin`, `artifactregistry.writer` no
   repositório e `iam.serviceAccountUser` só na SA de runtime;
-- Workload Identity Pool `github` + provider OIDC restrito ao seu repositório.
+- Workload Identity Pool `github` com um provider OIDC que só aceita o seu repositório.
 
-No fim ele imprime os comandos `gh variable set ...`. Depois disso, cada push em
-`main` que altera o servidor roda lint e testes, constrói a imagem, envia ao Artifact
-Registry e publica no Cloud Run. Nenhuma chave JSON é criada ou guardada no GitHub.
+No fim ele imprime os comandos `gh variable set ...`. A partir daí, cada push em `main`
+que mexe no servidor roda lint e testes, constrói a imagem, manda para o Artifact
+Registry e publica no Cloud Run. Nenhuma chave JSON é criada, e nada fica guardado no
+GitHub.
 
-## Limpeza depois do evento
+## Limpeza
 
 ```bash
 gcloud run services delete devbrain-mcp --region southamerica-east1
@@ -113,4 +117,4 @@ gcloud artifacts repositories delete devbrain --location southamerica-east1
 gcloud artifacts repositories delete cloud-run-source-deploy --location southamerica-east1
 ```
 
-O último repositório é criado automaticamente pelo `deploy.sh` (`--source`).
+O último repositório o próprio `deploy.sh` cria, por causa do `--source`.

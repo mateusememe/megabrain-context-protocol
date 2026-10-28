@@ -1,4 +1,4 @@
-# ADR-001: Arquitetura hexagonal enxuta para o laboratório
+# ADR-001: arquitetura hexagonal enxuta para o laboratório
 
 ## Status
 
@@ -6,34 +6,36 @@ Aceita.
 
 ## Contexto
 
-O minicurso atende até 30 pessoas, tem 3h30 e precisa demonstrar um servidor MCP
-testável por stdio, HTTP e Cloud Run. A versão inicial concentrava regra de negócio,
-contratos MCP e composition root em `server.py`, o que dificultava explicar testes
-sem transporte e a troca de fonte das diretrizes.
+O minicurso tem até 30 pessoas e 3h30 de duração. Ele precisa mostrar um servidor MCP
+que dá para testar por stdio, por HTTP e no Cloud Run. Na primeira versão, regra de
+negócio, contratos MCP e composition root ficavam todos no `server.py`. Ficava difícil
+explicar como testar a regra sem transporte, e mais difícil ainda trocar a fonte das
+diretrizes.
 
 ## Decisão
 
-Usar `domain/`, `application/` e `adapters/`. Há apenas uma porta de saída:
-`EngineeringGuidelinesPort`. MCP, HTTP e Cloud Run são adaptadores de entrada; o texto
-fixo das diretrizes é um adapter de saída do laboratório.
+Separar em `domain/`, `application/` e `adapters/`. A primeira versão tinha uma única
+porta de saída, `EngineeringGuidelinesPort`; depois entrou a `RepositoryPort`, para ler
+o git local. MCP, HTTP e Cloud Run são adaptadores de entrada. O texto fixo das
+diretrizes é um adapter de saída do laboratório.
 
 ## Alternativas consideradas
 
 | Opção | Vantagem | Custo | Decisão |
 |---|---|---|---|
-| Arquivo único | menor número de arquivos | mistura responsabilidades | rejeitada |
-| Hexagonal enxuta | troca de adapter e testes diretos claros | mais pastas | escolhida |
-| DDD completo/microservices | máximo isolamento | conteúdo e operação excessivos | rejeitada |
+| Arquivo único | menos arquivos | mistura responsabilidades | rejeitada |
+| Hexagonal enxuta | troca de adapter e testes diretos | mais pastas | escolhida |
+| DDD completo ou microsserviços | isolamento máximo | conteúdo e operação demais para 3h30 | rejeitada |
 
 ## Consequências
 
-- Positiva: regras podem ser testadas sem `Client`, porta ou processo.
-- Positiva: a fonte das diretrizes pode virar Git/API mantendo os casos de uso.
-- Negativa: o aluno precisa navegar por mais arquivos.
-- Mitigação: o roteiro abre primeiro `adapters/inbound/mcp.py`, depois segue a seta
-  para `application/` e `domain/`.
+A regra pode ser testada sem `Client`, porta ou processo, e a fonte das diretrizes
+pode virar um arquivo no Git ou uma API sem mudar os casos de uso.
 
-## Gatilho de revisão
+O custo é que o aluno navega por mais arquivos. Para compensar, o roteiro começa em
+`adapters/inbound/mcp.py` e segue a seta até `application/` e `domain/`.
 
-Revisar se o laboratório adicionar I/O real, autenticação, múltiplas fontes de
-diretrizes ou operações de escrita.
+## Quando revisar
+
+Se o laboratório ganhar autenticação, várias fontes de diretrizes ou operações de
+escrita.

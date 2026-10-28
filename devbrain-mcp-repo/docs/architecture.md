@@ -1,9 +1,9 @@
-# Arquitetura — DevBrain MCP
+# Arquitetura do DevBrain MCP
 
-O laboratório usa uma arquitetura hexagonal **enxuta**. O objetivo não é transformar
-um exercício de 3h30 em um sistema corporativo; é deixar explícito onde cada decisão
-mora e permitir trocar MCP/HTTP ou a fonte das diretrizes sem reescrever a regra de
-negócio.
+O laboratório usa uma arquitetura hexagonal pequena. Não queremos transformar um
+exercício de 3h30 num sistema corporativo. A ideia é que fique claro onde mora cada
+decisão, e que dê para trocar o transporte (MCP, HTTP) ou a fonte das diretrizes sem
+mexer na regra de negócio.
 
 ```text
                     adaptadores de entrada
@@ -16,30 +16,40 @@ negócio.
                   DevBrainUseCases (casos de uso)
                                │
                             domain
-              regras de prontidão e análise de arquivos
+     regras R1..R5, risco, classificação de arquivos, evidências de branch
                                │
-                     porta de saída read-only
-                    EngineeringGuidelinesPort
-                               │
-                 StaticEngineeringGuidelines (lab)
+                     portas de saída read-only
+          EngineeringGuidelinesPort         RepositoryPort
+                   │                              │
+      StaticEngineeringGuidelines      GitRepository (git local,
+                (lab)                   só no laptop, nunca no Cloud Run)
 ```
+
+Quem decide o que existe é o composition root. O `server.py` (stdio) e o `http.py`
+montam o servidor com `GitRepository`; o `cloud_run.py` monta sem. Tools, resources e
+prompts de repositório só são registrados quando há um repositório, e o cliente
+percebe a diferença sozinho, no `tools/list`.
 
 ## Mapa de código
 
 | Onde | Responsabilidade | Não deve conhecer |
 |---|---|---|
-| `domain/review.py` | regras determinísticas e modelos de resultado | MCP, HTTP, nuvem, filesystem |
+| `domain/files.py` | o que é teste, doc, contrato público, dependência | MCP, git, filesystem |
+| `domain/review.py` | regras R1..R5, risco e modelos de resultado | MCP, HTTP, nuvem, filesystem |
+| `domain/changes.py` | evidências de uma branch (`BranchChanges`) | git, MCP |
 | `application/use_cases.py` | orquestra os casos de uso | decorators MCP e transporte |
-| `application/ports.py` | contrato para obter diretrizes | implementação concreta |
-| `adapters/inbound/mcp.py` | compõe as primitives MCP | regras de decisão detalhadas |
-| `adapters/inbound/tools.py` | capabilities executáveis e read-only | transporte e regra de domínio |
+| `application/ports.py` | contratos para diretrizes e repositório, `RepositoryError` | implementação concreta |
+| `adapters/inbound/mcp.py` | monta as primitivas MCP | regras de decisão detalhadas |
+| `adapters/inbound/tools.py` | capabilities executáveis, todas read-only | transporte e regra de domínio |
 | `adapters/inbound/resources.py` | contexto com URI estável | seleção autônoma de tool |
-| `adapters/inbound/prompts.py` | templates/workflows explícitos | regra de domínio detalhada |
-| `adapters/outbound/static_guidelines.py` | fonte local do laboratório | protocolo MCP |
-| `server.py` | composition root e stdio | regras de negócio |
-| `http.py` e `cloud_run.py` | adaptadores de transporte | regras de negócio |
+| `adapters/inbound/prompts.py` | templates e workflows explícitos | regra de domínio detalhada |
+| `adapters/outbound/static_guidelines.py` | regras R1..R6 em Markdown | protocolo MCP |
+| `adapters/outbound/git_repository.py` | git somente leitura, com validação e limites | protocolo MCP, regras |
+| `server.py` | composition root e stdio; lê `DEVBRAIN_REPO_PATH` | regras de negócio |
+| `http.py` | o mesmo servidor por Streamable HTTP local | regras de negócio |
+| `cloud_run.py` | composition root da nuvem, sem repositório | regras de negócio |
 
-## Fluxo de uma tool
+## O caminho de uma chamada de tool
 
 ```text
 Host -> check-pr-readiness (MCP adapter)
@@ -48,19 +58,25 @@ Host -> check-pr-readiness (MCP adapter)
      -> PRReadiness estruturado -> Host
 ```
 
-As duas tools atuais são explicitamente `read_only_hint=True` e
-`open_world_hint=False`. São hints para o cliente, não um controle de segurança;
-o servidor continua sem acesso a shell, banco, arquivos ou rede.
+As três tools declaram `read_only_hint=True` e `open_world_hint=False`. Isso é uma
+dica para o cliente, e o cliente pode ignorar. A segurança de verdade está no
+servidor: ele não tem nenhuma operação de escrita, roda o git sem shell e com
+argumentos validados, não deixa o modelo escolher o repositório e não lê o conteúdo
+dos arquivos. A lista completa das defesas está no docstring de `git_repository.py`.
 
-## Onde evoluir no exercício
+Erros esperados (`ValueError` do domínio, `RepositoryError` do adapter) viram
+`ToolError` em `tools.py`. Assim a mensagem chega ao modelo com `isError: true`, em vez
+de um "Error executing tool" genérico.
 
-Para trocar o texto fixo por diretrizes em Git ou uma API, implemente
-`EngineeringGuidelinesPort` em um novo adapter de saída e injete-o em `server.py`.
-Não mova a regra de prontidão para o adapter de transporte.
+## Por onde evoluir
 
-Para novas capabilities, a sequência é:
+Quer trocar o texto fixo das diretrizes por um arquivo no Git ou uma API? Implemente
+`EngineeringGuidelinesPort` num novo adapter de saída e injete no `server.py`. A regra
+de prontidão continua onde está; ela não deve ir para o adapter de transporte.
 
-1. regra/teste em `domain/`;
+Para uma capability nova, eu sigo esta ordem:
+
+1. regra e teste em `domain/`;
 2. caso de uso em `application/`;
-3. adapter MCP com schema, descrição e anotações de segurança;
+3. adapter MCP com schema, descrição e anotações;
 4. teste MCP in-process em `test/`.
