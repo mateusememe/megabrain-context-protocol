@@ -2,11 +2,19 @@
 
 O Cloud Run injeta a porta em ``PORT`` e encaminha HTTPS para o container. O serviço
 do laboratório é privado por padrão (IAM); veja ``infrastructure/gcp/``.
+
+Repare que este composition root **não** recebe repositório: na nuvem não existe o
+seu código local. O mesmo servidor publica só as tools de regras puras, e os clientes
+descobrem isso sozinhos em ``tools/list``. Local × remoto é uma decisão de adapters.
 """
 
 import os
 
-from devbrain_mcp.server import mcp
+from devbrain_mcp.adapters.inbound.mcp import create_mcp_server
+from devbrain_mcp.adapters.outbound.static_guidelines import StaticEngineeringGuidelines
+from devbrain_mcp.application.use_cases import DevBrainUseCases
+
+mcp = create_mcp_server(DevBrainUseCases(StaticEngineeringGuidelines()))
 
 
 def main() -> None:

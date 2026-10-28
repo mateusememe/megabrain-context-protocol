@@ -3,7 +3,8 @@
     "devbrain": {
       "command": "uv",
       "args": ["run", "devbrain-mcp"],
-      "cwd": "/CAMINHO/ABSOLUTO/devbrain-mcp-repo"
+      "cwd": "/CAMINHO/ABSOLUTO/devbrain-mcp-repo",
+      "env": { "DEVBRAIN_REPO_PATH": "/CAMINHO/ABSOLUTO/DO/REPOSITORIO-A-REVISAR" }
     },
     "devbrain-cloud-run": {
       "serverUrl": "http://localhost:8080/mcp"

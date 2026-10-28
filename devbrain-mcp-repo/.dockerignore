@@ -10,3 +10,5 @@ configs/
 infrastructure/
 .env
 .agents/
+.mcp.json
+demo/

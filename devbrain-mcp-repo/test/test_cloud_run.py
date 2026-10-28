@@ -17,3 +17,12 @@ def test_cloud_run_listens_on_injected_port(monkeypatch) -> None:
             "json_response": True,
         }
     ]
+
+
+async def test_cloud_run_server_has_no_local_repository() -> None:
+    from mcp import Client
+
+    async with Client(cloud_run.mcp, raise_exceptions=True) as client:
+        tools = await client.list_tools()
+
+    assert "inspect-branch-changes" not in {tool.name for tool in tools.tools}

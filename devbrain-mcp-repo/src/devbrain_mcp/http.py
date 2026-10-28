@@ -1,3 +1,10 @@
+"""Entrada Streamable HTTP local: o mesmo servidor, agora atrás de uma URL.
+
+Útil para mostrar o protocolo "cru" com curl e para conectar vários hosts ao mesmo
+processo. ``stateless_http`` + ``json_response``: cada POST em ``/mcp`` carrega tudo
+de que precisa e recebe um JSON simples de volta, sem sessão nem stream SSE.
+"""
+
 from devbrain_mcp.server import mcp
 
 
