@@ -1,9 +1,10 @@
 # Apresentação em reveal.js
 
 Versão web da apresentação "MCP: MegaBrain Context Protocol", feita a partir da V2 do
-deck com o template do DevFest. São 53 slides: os 52 da V2 e, como slide 44, o link
-do repositório com o material do aluno. Do slide 44 em diante, a numeração fica uma à
-frente da V2. A parte de deploy saiu dos slides 5 e 7 e dos marcadores de seção.
+deck com o template do DevFest. São 54 slides: os 52 da V2, mais o slide 44 com o link
+do repositório do material do aluno e o slide 45, que marca a troca de tela para a demo.
+Do slide 44 em diante, a numeração fica duas à frente da V2. A parte de deploy saiu dos
+slides 5 e 7 e dos marcadores de seção.
 
 ## Como abrir
 
