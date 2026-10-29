@@ -1,24 +1,26 @@
 # DevBrain MCP
 
-Repositório hands-on do minicurso MCP: MegaBrain Context Protocol. O caminho é
-função Python -> MCP Server -> teste -> host -> Streamable HTTP. CI/CD e Google Cloud
-Run ficam como extra, para depois do curso (seção 8).
+O servidor MCP do minicurso MegaBrain Context Protocol. Ele começa como funções Python
+comuns, vira um servidor MCP, ganha testes sem LLM, entra num host de verdade e, no
+fim, também responde por Streamable HTTP. CI/CD e Google Cloud Run são um extra para
+depois do curso (seção 8).
 
 ## Por onde começar
 
 | Você quer | Abra |
 |---|---|
-| começar do zero e testar tudo | `docs/roteiro-de-testes.md` |
-| entender cada arquivo e cada conceito MCP | `docs/tour-do-codigo.md` |
-| entender a arquitetura | `docs/architecture.md` |
-| seguir a implementação MCP | `src/devbrain_mcp/adapters/inbound/mcp.py` |
-| ver Tools, Resources e Prompts | `src/devbrain_mcp/adapters/inbound/` |
-| ver as regras sem transporte | `src/devbrain_mcp/domain/review.py` |
-| trocar a fonte das diretrizes | `application/ports.py` e `adapters/outbound/` |
-| ver as defesas de segurança | `adapters/outbound/git_repository.py` |
-| preparar o notebook | `docs/setup.md` |
-| resolver um problema | `docs/troubleshooting.md` |
-| publicar no Google Cloud (extra) | `infrastructure/gcp/` e `docs/deploy-gcp.md` |
+| ver os docs na ordem de leitura | [docs/](docs/README.md) |
+| começar do zero e testar tudo | [docs/roteiro-de-testes.md](docs/roteiro-de-testes.md) |
+| entender cada arquivo e cada conceito MCP | [docs/tour-do-codigo.md](docs/tour-do-codigo.md) |
+| entender a arquitetura | [docs/architecture.md](docs/architecture.md) |
+| seguir a implementação MCP | [adapters/inbound/mcp.py](src/devbrain_mcp/adapters/inbound/mcp.py) |
+| ver Tools, Resources e Prompts | [adapters/inbound/](src/devbrain_mcp/adapters/inbound/) |
+| ver as regras sem transporte | [domain/review.py](src/devbrain_mcp/domain/review.py) |
+| trocar a fonte das diretrizes | [application/ports.py](src/devbrain_mcp/application/ports.py) e [adapters/outbound/](src/devbrain_mcp/adapters/outbound/) |
+| ver as defesas de segurança | [git_repository.py](src/devbrain_mcp/adapters/outbound/git_repository.py) |
+| preparar o notebook | [docs/setup.md](docs/setup.md) |
+| resolver um problema | [docs/troubleshooting.md](docs/troubleshooting.md) |
+| publicar no Google Cloud (extra) | [infrastructure/gcp/](infrastructure/gcp/) e [docs/deploy-gcp.md](docs/deploy-gcp.md) |
 
 O `server.py` só monta o servidor para stdio. A estrutura é hexagonal e pequena: os
 adaptadores (MCP, HTTP, Cloud Run) chamam casos de uso, e os casos de uso chamam regras
@@ -237,16 +239,5 @@ docker build -t devbrain-mcp . # imagem do Cloud Run
 
 ## Referências oficiais
 
-- MCP Python SDK v2: https://py.sdk.modelcontextprotocol.io/
-- Repositório do Python SDK: https://github.com/modelcontextprotocol/python-sdk
-- MCP 2026-07-28: https://blog.modelcontextprotocol.io/posts/2026-07-28/
-- uv: https://docs.astral.sh/uv/
-- Lançamento do MCP pela Anthropic: https://www.anthropic.com/news/model-context-protocol
-- Antigravity MCP: https://antigravity.google/docs/mcp
-- Gemini CLI MCP: https://github.com/google-gemini/gemini-cli/blob/main/docs/tools/mcp-server.md
-- Claude Code MCP: https://docs.anthropic.com/en/docs/claude-code/mcp
-- GitHub Copilot MCP: https://docs.github.com/copilot/how-tos/copilot-cli/customize-copilot/add-mcp-servers
-- Cloud Run, hospedar MCP servers: https://cloud.google.com/run/docs/host-mcp-servers
-- Cloud Run, deploy a partir do código-fonte: https://cloud.google.com/run/docs/deploying-source-code
-- `gcloud run services proxy`: https://cloud.google.com/sdk/gcloud/reference/run/services/proxy
-- Workload Identity Federation para GitHub Actions: https://github.com/google-github-actions/auth
+Os links da spec, do SDK, dos hosts e do Google Cloud estão em
+[REFERENCIAS.md](../REFERENCIAS.md), na raiz do repositório.

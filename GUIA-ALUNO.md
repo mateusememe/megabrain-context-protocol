@@ -14,7 +14,7 @@ O repositório de referência vai um pouco além e lê evidências reais do git,
 modo somente leitura: a tool `inspect-branch-changes`, o resource
 `devbrain://repository/overview`, o resource template
 `devbrain://repository/commits/{sha}` e o prompt `review-branch`. O
-`docs/tour-do-codigo.md` explica cada um.
+[tour do código](devbrain-mcp-repo/docs/tour-do-codigo.md) explica cada um.
 
 No fim, o mesmo servidor roda localmente por stdio ou como endpoint por Streamable
 HTTP. Publicar no Google Cloud Run é um extra para depois do curso (Lab 7).
@@ -194,13 +194,13 @@ agy mcp add devbrain-cloud-run http://localhost:8080/mcp
 ```
 
 O serviço é privado: só quem tem permissão IAM no projeto chega ao endpoint, e o
-`proxy` autentica com a sua conta `gcloud`. Os detalhes estão em `docs/deploy-gcp.md`.
+`proxy` autentica com a sua conta `gcloud`. Os detalhes estão em [deploy-gcp.md](devbrain-mcp-repo/docs/deploy-gcp.md).
 
 ## Se algo falhar
 
 O caminho principal não depende de nuvem nem de um host específico. Se o Inspector ou
 o agente falharem, rode `uv run pytest -q`, leia os contratos e siga com o exercício.
-O `docs/troubleshooting.md` tem os diagnósticos mais comuns.
+O [troubleshooting](devbrain-mcp-repo/docs/troubleshooting.md) tem os diagnósticos mais comuns.
 
 ## Desafio
 
@@ -233,4 +233,4 @@ Ela precisa:
 
 ## Referências
 
-As referências oficiais estão em `REFERENCIAS.md`.
+As referências oficiais estão em [REFERENCIAS.md](REFERENCIAS.md).
