@@ -1,0 +1,1115 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MCP MegaBrain Context Protocol</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Google+Sans+Code:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="vendor/reveal/reset.css">
+<link rel="stylesheet" href="vendor/reveal/reveal.css">
+<style>
+:root {
+  --ink: #1E1E1E;
+  --muted: #5F6368;
+  --paper: #F2F1F0;
+  --white: #FFFFFF;
+  --blue: #4285F4;
+  --red: #EA4335;
+  --yellow: #F9AB00;
+  --green: #34A853;
+  --blue-p: #C3ECF6;
+  --green-p: #C1F8C0;
+  --yellow-p: #FFE79C;
+  --red-p: #FED7D7;
+  --line: 4px;
+  --sans: "Google Sans", "Product Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono: "Google Sans Code", "Roboto Mono", ui-monospace, Menlo, monospace;
+}
+html, body { background: var(--paper); }
+.reveal { font-family: var(--sans); color: var(--ink); font-size: 40px; }
+.reveal .slides { text-align: left; }
+.reveal .slides section { width: 1920px; height: 1080px; padding: 0; overflow: hidden; }
+.reveal .slide-number {
+  left: 26px; right: auto; bottom: 20px; background: transparent;
+  color: var(--ink); opacity: .55; font: 500 22px var(--sans);
+}
+.reveal .progress { color: var(--blue); height: 6px; }
+.reveal strong { font-weight: 700; }
+.reveal p, .reveal li { line-height: 1.3; }
+
+/* camadas */
+.frame { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; }
+.under { position: absolute; z-index: 1; }
+.over { position: absolute; z-index: 3; }
+.card-bg { position: absolute; inset: 0; background: var(--white); z-index: 0; }
+
+/* marca MCP @DevFest sobre os fundos coloridos */
+.brand-mcp { position: absolute; z-index: 3; left: 1400px; top: 46px; width: 350px; font: 500 58px/1 var(--sans); }
+.brand-pill { position: absolute; z-index: 3; left: 1402px; top: 239px; width: 350px; text-align: center; font: 500 19px/1 var(--sans); }
+
+/* slides de frase (fundos coloridos) */
+.lead { position: absolute; z-index: 3; left: 300px; top: 130px; width: 740px; height: 820px;
+  display: flex; flex-direction: column; justify-content: center; font-size: 54px; line-height: 1.3; }
+.lead p { margin: 0; }
+.lead .tags { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 40px; }
+.alt { position: absolute; z-index: 3; left: 290px; top: 120px; width: 760px; height: 840px; }
+
+/* slides de cartão */
+.content { position: absolute; z-index: 3; left: 160px; top: 150px; width: 1600px; height: 720px; }
+.content h2 { margin: 0 0 44px; font: 700 76px/1.05 var(--sans); letter-spacing: -1px; }
+.content .sub { font-size: 44px; color: var(--muted); margin: -24px 0 40px; }
+.foot { position: absolute; z-index: 3; left: 160px; top: 890px; width: 1150px; font-size: 40px; color: var(--muted); }
+
+/* seção */
+.sec-num { position: absolute; z-index: 3; left: 128px; top: 92px; font: 400 160px/1 var(--sans); }
+.sec-title { position: absolute; z-index: 3; left: 685px; top: 190px; font: 700 130px/1 var(--sans); letter-spacing: -2px; }
+.sec-sub { position: absolute; z-index: 3; left: 690px; top: 380px; width: 900px; font-size: 46px; line-height: 1.25; color: var(--ink); }
+.track { position: absolute; z-index: 3; left: 690px; top: 640px; display: flex; gap: 10px; }
+.track span { font: 500 24px/1 var(--sans); padding: 14px 15px; border: 3px solid var(--ink); border-radius: 999px; background: var(--white); }
+.track span.on { background: var(--yellow-p); }
+.track span.done { background: var(--paper); color: var(--muted); border-color: #9AA0A6; }
+
+/* peças visuais */
+.pill { display: inline-block; border: var(--line) solid var(--ink); border-radius: 999px; padding: 12px 30px; background: var(--white); font-weight: 500; font-size: 38px; }
+.pill.b { background: var(--blue-p); } .pill.g { background: var(--green-p); } .pill.y { background: var(--yellow-p); } .pill.r { background: var(--red-p); }
+.box { border: var(--line) solid var(--ink); border-radius: 30px; background: var(--white); padding: 28px 32px; }
+.box.b { background: var(--blue-p); } .box.g { background: var(--green-p); } .box.y { background: var(--yellow-p); } .box.r { background: var(--red-p); } .box.p { background: var(--paper); }
+.box h3 { margin: 0 0 12px; font: 700 50px/1.1 var(--sans); }
+.box p { margin: 0; font-size: 36px; line-height: 1.3; color: #3C4043; }
+.row { display: flex; gap: 28px; align-items: stretch; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+.grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+.flow { display: flex; align-items: center; gap: 18px; flex-wrap: nowrap; }
+.flow .arrow { font-size: 56px; font-weight: 700; color: var(--ink); }
+.flow .step { border: var(--line) solid var(--ink); border-radius: 26px; padding: 26px 30px; background: var(--white); font-size: 40px; font-weight: 500; text-align: center; }
+.dot { width: 76px; height: 76px; border-radius: 50%; border: var(--line) solid var(--ink); display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 30px; flex: none; }
+.dot.b { background: var(--blue); color: #fff; } .dot.r { background: var(--red); color: #fff; } .dot.y { background: var(--yellow); } .dot.g { background: var(--green); color: #fff; }
+.icon { width: 88px; height: 88px; border-radius: 24px; border: var(--line) solid var(--ink); display: flex; align-items: center; justify-content: center; margin-bottom: 18px; }
+.icon svg { width: 52px; height: 52px; }
+.icon.b { background: var(--blue-p); } .icon.g { background: var(--green-p); } .icon.y { background: var(--yellow-p); } .icon.r { background: var(--red-p); }
+.mono { font-family: var(--mono); }
+.muted { color: var(--muted); }
+.big { font-size: 50px; }
+.tag { font: 500 32px/1 var(--sans); padding: 12px 22px; border-radius: 999px; border: 3px solid var(--ink); background: rgba(255,255,255,.75); }
+.check { display: grid; grid-template-columns: 76px 1fr; gap: 22px; align-items: center; }
+
+/* código */
+.code { border: var(--line) solid var(--ink); border-radius: 28px; background: #FBFBFA; overflow: hidden; }
+.code .bar { display: flex; align-items: center; gap: 12px; padding: 14px 22px; border-bottom: 3px solid var(--ink); background: var(--paper); font: 500 28px var(--mono); }
+.code .bar i { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--ink); display: inline-block; }
+.code .bar i:nth-child(1) { background: var(--red); } .code .bar i:nth-child(2) { background: var(--yellow); } .code .bar i:nth-child(3) { background: var(--green); }
+.reveal .code pre { margin: 0; width: 100%; box-shadow: none; font-size: 32px; line-height: 1.45; }
+.reveal .code pre code { display: block; padding: 22px 30px; max-height: none; font-family: var(--mono); background: transparent; color: var(--ink); }
+.term { border: var(--line) solid var(--ink); border-radius: 28px; background: #202124; color: #E8EAED; overflow: hidden; }
+.term .bar { background: #3C4043; border-bottom: 3px solid var(--ink); color: #E8EAED; }
+.term .line { font: 400 40px/1.6 var(--mono); padding: 0 34px; }
+.term .line .ps { color: #81C995; }
+.term .out { color: #9AA0A6; }
+/* destaque de sintaxe (claro, cores Google) */
+.hljs-keyword, .hljs-built_in { color: #C5221F; font-weight: 500; }
+.hljs-string { color: #188038; }
+.hljs-title, .hljs-title.function_ { color: #1A73E8; font-weight: 500; }
+.hljs-meta { color: #B06000; }
+.hljs-comment { color: #80868B; font-style: italic; }
+.hljs-number, .hljs-literal { color: #A142F4; }
+.hljs-params { color: var(--ink); }
+.reveal .code .hl-dim { opacity: .35; }
+
+/* diagrama de arquitetura (slides 19-22) */
+.arch { position: relative; height: 640px; }
+.arch .layer { position: absolute; border: var(--line) solid var(--ink); border-radius: 30px; background: var(--white); transition: background .4s, opacity .4s, transform .4s; }
+.arch .lab { font: 700 38px var(--sans); position: absolute; left: 26px; top: 18px; }
+.arch .host { left: 0; top: 0; width: 560px; height: 540px; }
+.arch .client { left: 40px; top: 300px; width: 480px; height: 200px; }
+.arch .server { left: 760px; top: 0; width: 500px; height: 540px; }
+.arch .prim { position: absolute; left: 36px; width: 428px; height: 92px; border: 3px solid var(--ink); border-radius: 20px; display: flex; align-items: center; padding-left: 26px; font: 500 38px var(--sans); background: var(--white); }
+.arch .ext { left: 1340px; top: 0; width: 260px; height: 540px; background: var(--paper); }
+.arch .wire { position: absolute; left: 520px; top: 400px; width: 240px; border-top: 6px dashed var(--ink); }
+.arch .wire2 { position: absolute; left: 1260px; top: 300px; width: 80px; border-top: 6px solid var(--ink); }
+.arch .wlab { position: absolute; left: 560px; top: 415px; font: 500 30px var(--mono); }
+.arch.f-host .host, .arch.f-client .client, .arch.f-server .server { background: var(--yellow-p); }
+.arch.f-host .server, .arch.f-host .ext, .arch.f-client .server, .arch.f-client .ext, .arch.f-server .host, .arch.f-server .ext { opacity: .35; }
+.arch.f-client .host { background: var(--white); }
+
+/* inspector */
+.win { border: var(--line) solid var(--ink); border-radius: 28px; background: var(--white); overflow: hidden; }
+.win .bar { display: flex; gap: 12px; align-items: center; padding: 14px 22px; border-bottom: 3px solid var(--ink); background: var(--paper); font: 500 28px var(--sans); }
+.win .bar i { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--ink); display: inline-block; }
+.win .bar i:nth-child(1) { background: var(--red); } .win .bar i:nth-child(2) { background: var(--yellow); } .win .bar i:nth-child(3) { background: var(--green); }
+.tabs { display: flex; gap: 0; border-bottom: 3px solid var(--ink); }
+.tabs span { padding: 16px 30px; font: 500 32px var(--sans); border-right: 3px solid var(--ink); }
+.tabs span.on { background: var(--blue-p); }
+
+/* fragmentos */
+.reveal .slides section .fragment.grow-in { opacity: 0; transform: scale(.85); }
+.reveal .slides section .fragment.grow-in.visible { opacity: 1; transform: none; }
+</style>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+
+<!-- ============================ 1. Capa ============================ -->
+<section data-background-color="#F2F1F0">
+  <div class="card-bg"></div>
+  <img class="frame" src="assets/capa.png" alt="">
+  <div class="over" style="left:157px;top:42px;font:500 66px/1 var(--sans)">MCP</div>
+  <div class="over" style="left:164px;top:239px;width:350px;text-align:center;font:500 19px/1 var(--sans)">DevFest 2026</div>
+  <div class="over" style="left:480px;top:290px;width:860px;text-align:right;font:700 138px/1 var(--sans);letter-spacing:-3px">MCP<br>MegaBrain<br>Context<br>Protocol</div>
+  <img class="over" src="assets/meme-cerebro.png" alt="Meme do cérebro gigante" style="left:123px;top:641px;width:407px;height:358px;object-fit:contain">
+  <img class="over" src="assets/meme-megamind.png" alt="Meme do Megamente" style="left:1313px;top:0;width:607px;height:1080px;object-fit:cover">
+</section>
+
+<!-- ============================ 2. Instrutor 1 ============================ -->
+<section data-background-color="#F2F1F0">
+  <img class="under" src="assets/bia.jpg" alt="Foto de Maria Beatriz França" style="left:1048px;top:14px;width:875px;height:1314px;object-fit:cover">
+  <img class="frame" src="assets/instrutor.png" alt="">
+  <div class="over" style="left:157px;top:46px;font:500 58px/1 var(--sans)">MCP</div>
+  <div class="over" style="left:164px;top:239px;width:350px;text-align:center;font:500 19px/1 var(--sans)">DevFest 2026</div>
+  <div class="over" style="left:83px;top:430px;font:700 124px/1 var(--sans);letter-spacing:-2px">Instrutor 1</div>
+  <div class="over" style="left:88px;top:600px;font-size:52px;line-height:1.35">Maria Beatriz França<br><span class="muted">AI Engineer, Vericode</span></div>
+  <div class="over" style="left:88px;top:780px;display:flex;gap:14px">
+    <span class="pill b">Conceitos</span><span class="pill y">Arquitetura</span><span class="pill g">Agentes</span>
+  </div>
+</section>
+
+<!-- ============================ 3. Instrutor 2 ============================ -->
+<section data-background-color="#F2F1F0">
+  <img class="under" src="assets/mateus.png" alt="Foto de Mateus" style="left:1048px;top:14px;width:875px;height:1314px;object-fit:cover;object-position:top">
+  <img class="frame" src="assets/instrutor.png" alt="">
+  <div class="over" style="left:157px;top:46px;font:500 58px/1 var(--sans)">MCP</div>
+  <div class="over" style="left:164px;top:239px;width:350px;text-align:center;font:500 19px/1 var(--sans)">DevFest 2026</div>
+  <div class="over" style="left:83px;top:430px;font:700 124px/1 var(--sans);letter-spacing:-2px">Instrutor 2</div>
+  <div class="over" style="left:88px;top:600px;font-size:52px;line-height:1.35">Mateus M. Monteiro<br><span class="muted">Backend Engineer, Itaú Unibanco</span></div>
+  <div class="over" style="left:88px;top:780px;display:flex;gap:14px">
+    <span class="pill r">Implementação</span><span class="pill g">Testes</span><span class="pill b">Demo</span>
+  </div>
+</section>
+
+<!-- ============================ 4. LLM na caixa ============================ -->
+<section data-background-color="#F2F1F0">
+  <img class="frame" src="assets/cinza.png" alt="">
+  <div class="brand-mcp">MCP</div><div class="brand-pill">DevFest 2026</div>
+  <div class="lead">
+    <p><strong>Seu LLM vive numa caixa.</strong> Ele raciocina, mas não acessa GitHub, documentação interna ou Cloud sozinho.</p>
+    <div class="tags fragment">
+      <span class="tag">✕ GitHub</span><span class="tag">✕ docs internas</span><span class="tag">✕ Cloud</span><span class="tag">✕ regras do time</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 5. O que vamos ver hoje ============================ -->
+<section data-background-color="#F2F1F0">
+  <div class="card-bg"></div><img class="frame" src="assets/card.png" alt="">
+  <div class="content">
+    <h2>O que vamos ver hoje</h2>
+    <div class="flow" style="flex-wrap:wrap;row-gap:34px;width:1560px">
+      <div class="step fragment" style="background:var(--yellow-p)">função Python</div><span class="arrow fragment">→</span>
+      <div class="step fragment" style="background:var(--blue-p)">MCP Tool</div><span class="arrow fragment">→</span>
+      <div class="step fragment" style="background:var(--blue-p)">MCP Server</div><span class="arrow fragment">→</span>
+      <div class="step fragment" style="background:var(--green-p)">Inspector</div><span class="arrow fragment">→</span>
+      <div class="step fragment" style="background:var(--red-p)">Agent</div><span class="arrow fragment">→</span>
+      <div class="step fragment">HTTP</div>
+    </div>
+    <p class="muted" style="font-size:40px;margin-top:60px">Um caminho só: do código no seu notebook até um agente usando o que você construiu.</p>
+  </div>
+</section>
+
+<!-- ============================ 6. Definição de pronto ============================ -->
+<section data-background-color="#F2F1F0">
+  <div class="card-bg"></div><img class="frame" src="assets/card.png" alt="">
+  <div class="content">
+    <h2>Definição de pronto</h2>
+    <div class="grid2" style="width:1500px">
+      <div class="box b check fragment"><span class="dot b">1</span><div class="big">Criar Tools, Resource e Prompt</div></div>
+      <div class="box g check fragment"><span class="dot g">2</span><div class="big">Testar sem depender de um LLM</div></div>
+      <div class="box y check fragment"><span class="dot y">3</span><div class="big">Conectar um host</div></div>
+      <div class="box r check fragment"><span class="dot r">4</span><div class="big">Entender local, remoto e segurança</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 7. Run of show ============================ -->
+<section data-background-color="#F2F1F0">
+  <div class="card-bg"></div><img class="frame" src="assets/card.png" alt="">
+  <div class="content">
+    <h2>Run of show</h2>
+    <div class="grid4" style="width:1560px;row-gap:30px">
+      <div class="box y fragment"><div class="muted mono" style="font-size:31px">01</div><h3>WHY</h3><p>o problema</p></div>
+      <div class="box y fragment"><div class="muted mono" style="font-size:31px">02</div><h3>WHAT</h3><p>o protocolo</p></div>
+      <div class="box b fragment"><div class="muted mono" style="font-size:31px">03</div><h3>HOW</h3><p>as primitivas</p></div>
+      <div class="box b fragment"><div class="muted mono" style="font-size:31px">04</div><h3>BUILD</h3><p>o DevBrain</p></div>
+      <div class="box g fragment"><div class="muted mono" style="font-size:31px">05</div><h3>TEST</h3><p>sem LLM</p></div>
+      <div class="box g fragment"><div class="muted mono" style="font-size:31px">06</div><h3>USE</h3><p>com um agente</p></div>
+      <div class="box r fragment"><div class="muted mono" style="font-size:31px">07</div><h3>ENGINEER</h3><p>local, remoto e segurança</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 8. Pré-requisitos ============================ -->
+<section data-background-color="#C3ECF6">
+  <img class="frame" src="assets/azul.png" alt="">
+  <div class="brand-mcp">MCP</div><div class="brand-pill">DevFest 2026</div>
+  <div class="lead">
+    <p><strong>Pré-requisitos:</strong> Git, terminal, APIs HTTP/JSON e Python básico. Não precisa conhecer MCP, agentes ou LLM engineering.</p>
+    <div class="tags fragment"><span class="tag">git</span><span class="tag">terminal</span><span class="tag">HTTP/JSON</span><span class="tag">Python</span></div>
+  </div>
+</section>
+
+<!-- ============================ 9. Setup ============================ -->
+<section data-background-color="#C1F8C0">
+  <img class="frame" src="assets/verde.png" alt="">
+  <div class="brand-mcp">MCP</div><div class="brand-pill">DevFest 2026</div>
+  <div class="lead">
+    <p><strong>Setup:</strong> Python 3.12, uv, Git e um editor. Node é necessário apenas para o MCP Inspector.</p>
+    <div class="tags fragment"><span class="tag mono">uv python install 3.12</span><span class="tag mono">uv sync</span></div>
+  </div>
+</section>
+
+<!-- ============================ 10. Seção 01 Why ============================ -->
+<section data-background-color="#F2F1F0">
+  <div class="card-bg"></div><img class="frame" src="assets/secao.png" alt="">
+  <div class="sec-num">01</div>
+  <div class="sec-title">Why</div>
+  <div class="sec-sub">Por que agentes precisam de um protocolo de contexto</div>
+  <div class="track"><span class="on">WHY</span><span>WHAT</span><span>HOW</span><span>BUILD</span><span>TEST</span><span>USE</span><span>ENGINEER</span></div>
+</section>
+
+<!-- ============================ 11. Chatbot x Agent ============================ -->
+<section data-background-color="#FFE79C">
+  <img class="frame" src="assets/amarelo.png" alt="">
+  <div class="brand-mcp">MCP</div><div class="brand-pill">DevFest 2026</div>
+  <div class="lead">
+    <p><strong>Chatbot</strong> responde. <strong>Agent</strong> decide, planeja e usa capabilities para agir sobre contexto real.</p>
+    <div class="tags fragment"><span class="tag">pergunta → resposta</span><span class="tag">objetivo → plano → ação → evidência</span></div>
+  </div>
+</section>
+
+<!-- ============================ 12. Function calling ============================ -->
+<section data-background-color="#FED7D7">
+  <img class="frame" src="assets/vermelho.png" alt="">
+  <div class="brand-mcp">MCP</div><div class="brand-pill">DevFest 2026</div>
+  <div class="lead">
+    <p><strong>Function calling</strong> permite que o modelo escolha uma função, mas ainda faltam contratos, descoberta e reuso entre hosts.</p>
+    <div class="tags fragment"><span class="tag">contrato?</span><span class="tag">descoberta?</span><span class="tag">reuso?</span></div>
+  </div>
+</section>
+
+<!-- ============================ 13. N x M ============================ -->
+<section data-background-color="#F2F1F0">
+  <img class="frame" src="assets/cinza.png" alt="">
+  <div class="brand-mcp">MCP</div><div class="brand-pill">DevFest 2026</div>
+  <div class="lead fragment fade-out" data-fragment-index="1">
+    <p><strong>O problema N × M:</strong> Claude, Copilot, Codex e agentes próprios × GitHub, Jira, bancos, AWS e APIs internas.</p>
+  </div>
+  <div class="alt fragment" data-fragment-index="1">
+    <svg viewBox="0 0 760 840" width="760" height="840" aria-label="Quatro hosts ligados a cinco sistemas: vinte integrações">
+      <g stroke="#1E1E1E" stroke-width="3" opacity=".75">
+        <line x1="210" y1="150" x2="560" y2="110"/><line x1="210" y1="150" x2="560" y2="260"/><line x1="210" y1="150" x2="560" y2="410"/><line x1="210" y1="150" x2="560" y2="560"/><line x1="210" y1="150" x2="560" y2="710"/>
+        <line x1="210" y1="340" x2="560" y2="110"/><line x1="210" y1="340" x2="560" y2="260"/><line x1="210" y1="340" x2="560" y2="410"/><line x1="210" y1="340" x2="560" y2="560"/><line x1="210" y1="340" x2="560" y2="710"/>
+        <line x1="210" y1="530" x2="560" y2="110"/><line x1="210" y1="530" x2="560" y2="260"/><line x1="210" y1="530" x2="560" y2="410"/><line x1="210" y1="530" x2="560" y2="560"/><line x1="210" y1="530" x2="560" y2="710"/>
+        <line x1="210" y1="720" x2="560" y2="110"/><line x1="210" y1="720" x2="560" y2="260"/><line x1="210" y1="720" x2="560" y2="410"/><line x1="210" y1="720" x2="560" y2="560"/><line x1="210" y1="720" x2="560" y2="710"/>
+      </g>
+      <g font-family="Google Sans, Arial" font-size="30" font-weight="500" text-anchor="middle">
+        <rect x="20" y="115" width="190" height="70" rx="35" fill="#C3ECF6" stroke="#1E1E1E" stroke-width="4"/><text x="115" y="160">Claude</text>
+        <rect x="20" y="305" width="190" height="70" rx="35" fill="#C3ECF6" stroke="#1E1E1E" stroke-width="4"/><text x="115" y="350">Copilot</text>
+        <rect x="20" y="495" width="190" height="70" rx="35" fill="#C3ECF6" stroke="#1E1E1E" stroke-width="4"/><text x="115" y="540">Codex</text>
+        <rect x="20" y="685" width="190" height="70" rx="35" fill="#C3ECF6" stroke="#1E1E1E" stroke-width="4"/><text x="115" y="730">Agente</text>
+        <rect x="560" y="75" width="190" height="70" rx="35" fill="#C1F8C0" stroke="#1E1E1E" stroke-width="4"/><text x="655" y="120">GitHub</text>
+        <rect x="560" y="225" width="190" height="70" rx="35" fill="#C1F8C0" stroke="#1E1E1E" stroke-width="4"/><text x="655" y="270">Jira</text>
+        <rect x="560" y="375" width="190" height="70" rx="35" fill="#C1F8C0" stroke="#1E1E1E" stroke-width="4"/><text x="655" y="420">Bancos</text>
+        <rect x="560" y="525" width="190" height="70" rx="35" fill="#C1F8C0" stroke="#1E1E1E" stroke-width="4"/><text x="655" y="570">AWS</text>
+        <rect x="560" y="675" width="190" height="70" rx="35" fill="#C1F8C0" stroke="#1E1E1E" stroke-width="4"/><text x="655" y="720">APIs</text>
+      </g>
+      <text x="380" y="815" text-anchor="middle" font-family="Google Sans, Arial" font-size="40" font-weight="700">4 × 5 = 20 integrações</text>
+    </svg>
+  </div>
+</section>
+
+<!-- ============================ 14. Seção 02 What ============================ -->
+<section data-background-color="#F2F1F0">
+  <div class="card-bg"></div><img class="frame" src="assets/secao.png" alt="">
+  <div class="sec-num">02</div>
+  <div class="sec-title">What</div>
+  <div class="sec-sub">O que é o Model Context Protocol</div>
+  <div class="track"><span class="done">WHY</span><span class="on">WHAT</span><span>HOW</span><span>BUILD</span><span>TEST</span><span>USE</span><span>ENGINEER</span></div>
+</section>
+
+<!-- ============================ 15. MCP é um protocolo ============================ -->
+<section data-background-color="#C3ECF6">
+  <img class="frame" src="assets/azul.png" alt="">
+  <div class="brand-mcp">MCP</div><div class="brand-pill">DevFest 2026</div>
+  <div class="lead">
+    <p><strong>MCP</strong> é um protocolo aberto para hosts de IA descobrirem e consumirem capabilities e contexto.</p>
+    <div class="tags fragment"><span class="tag">aberto</span><span class="tag">descoberta</span><span class="tag">JSON-RPC</span></div>
+  </div>
+</section>
+
+<!-- ============================ 16. USB-C ============================ -->
+<section data-background-color="#C1F8C0">
+  <img class="frame" src="assets/verde.png" alt="">
+  <div class="brand-mcp">MCP</div><div class="brand-pill">DevFest 2026</div>
+  <div class="lead fragment fade-out" data-fragment-index="1">
+    <p><strong>USB-C</strong> para aplicações de IA: um contrato comum entre hosts e servidores, não uma integração específica para um modelo.</p>
+  </div>
+  <div class="alt fragment" data-fragment-index="1">
+    <svg viewBox="0 0 760 840" width="760" height="840" aria-label="Quatro hosts e cinco sistemas ligados por um único protocolo: nove conexões">
+      <g stroke="#1E1E1E" stroke-width="4">
+        <line x1="210" y1="150" x2="320" y2="420"/><line x1="210" y1="340" x2="320" y2="420"/><line x1="210" y1="530" x2="320" y2="420"/><line x1="210" y1="720" x2="320" y2="420"/>
+        <line x1="440" y1="420" x2="560" y2="110"/><line x1="440" y1="420" x2="560" y2="260"/><line x1="440" y1="420" x2="560" y2="410"/><line x1="440" y1="420" x2="560" y2="560"/><line x1="440" y1="420" x2="560" y2="710"/>
+      </g>
+      <g font-family="Google Sans, Arial" font-size="30" font-weight="500" text-anchor="middle">
+        <rect x="20" y="115" width="190" height="70" rx="35" fill="#C3ECF6" stroke="#1E1E1E" stroke-width="4"/><text x="115" y="160">Claude</text>
+        <rect x="20" y="305" width="190" height="70" rx="35" fill="#C3ECF6" stroke="#1E1E1E" stroke-width="4"/><text x="115" y="350">Copilot</text>
+        <rect x="20" y="495" width="190" height="70" rx="35" fill="#C3ECF6" stroke="#1E1E1E" stroke-width="4"/><text x="115" y="540">Codex</text>
+        <rect x="20" y="685" width="190" height="70" rx="35" fill="#C3ECF6" stroke="#1E1E1E" stroke-width="4"/><text x="115" y="730">Agente</text>
+        <rect x="300" y="350" width="160" height="140" rx="30" fill="#FFE79C" stroke="#1E1E1E" stroke-width="4"/><text x="380" y="435" font-size="44" font-weight="700">MCP</text>
+        <rect x="560" y="75" width="190" height="70" rx="35" fill="#FFFFFF" stroke="#1E1E1E" stroke-width="4"/><text x="655" y="120">GitHub</text>
+        <rect x="560" y="225" width="190" height="70" rx="35" fill="#FFFFFF" stroke="#1E1E1E" stroke-width="4"/><text x="655" y="270">Jira</text>
+        <rect x="560" y="375" width="190" height="70" rx="35" fill="#FFFFFF" stroke="#1E1E1E" stroke-width="4"/><text x="655" y="420">Bancos</text>
+        <rect x="560" y="525" width="190" height="70" rx="35" fill="#FFFFFF" stroke="#1E1E1E" stroke-width="4"/><text x="655" y="570">AWS</text>
+        <rect x="560" y="675" width="190" height="70" rx="35" fill="#FFFFFF" stroke="#1E1E1E" stroke-width="4"/><text x="655" y="720">APIs</text>
+      </g>
+      <text x="380" y="815" text-anchor="middle" font-family="Google Sans, Arial" font-size="40" font-weight="700">4 + 5 = 9 conexões</text>
+    </svg>
+  </div>
+</section>
+
+<!-- ============================ 17. MCP mudou ============================ -->
+<section data-background-color="#F2F1F0">
+  <div class="card-bg"></div><img class="frame" src="assets/card.png" alt="">
+  <div class="content">
+    <h2>MCP mudou</h2>
+    <div style="position:relative;width:1560px;height:520px">
+      <div style="position:absolute;left:40px;right:40px;top:96px;border-top:6px solid var(--ink)"></div>
+      <div class="fragment" style="position:absolute;left:0;top:60px;width:470px">
+        <span class="dot y" style="width:78px;height:78px"></span>
+        <div class="box y" style="margin-top:36px"><h3>Nov. 2024</h3><p>Anúncio aberto pela Anthropic</p></div>
+      </div>
+      <div class="fragment" style="position:absolute;left:545px;top:60px;width:470px">
+        <span class="dot b" style="width:78px;height:78px"></span>
+        <div class="box b" style="margin-top:36px"><h3>Dez. 2025</h3><p>Contribuição fundadora para a Agentic AI Foundation (Linux Foundation)</p></div>
+      </div>
+      <div class="fragment" style="position:absolute;left:1090px;top:60px;width:470px">
+        <span class="dot g" style="width:78px;height:78px"></span>
+        <div class="box g" style="margin-top:36px"><h3>2026</h3><p>Core HTTP stateless (spec 2026-07-28) e SDKs v2</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 18. Um protocolo, não um modelo ============================ -->
+<section data-background-color="#F2F1F0">
+  <div class="card-bg"></div><img class="frame" src="assets/card.png" alt="">
+  <div class="content">
+    <h2>Um protocolo, não um modelo</h2>
+    <div class="grid4" style="width:1560px">
+      <div class="box r fragment" style="text-align:center;padding:44px 20px"><div style="font:700 64px var(--sans)">≠</div><h3 style="margin-top:14px">LLM</h3><p>não pensa por você</p></div>
+      <div class="box y fragment" style="text-align:center;padding:44px 20px"><div style="font:700 64px var(--sans)">≠</div><h3 style="margin-top:14px">Agent</h3><p>não decide nada</p></div>
+      <div class="box b fragment" style="text-align:center;padding:44px 20px"><div style="font:700 64px var(--sans)">≠</div><h3 style="margin-top:14px">Banco de dados</h3><p>não guarda estado</p></div>
+      <div class="box g fragment" style="text-align:center;padding:44px 20px"><div style="font:700 64px var(--sans)">≠</div><h3 style="margin-top:14px">REST/gRPC</h3><p>não substitui sua API</p></div>
+    </div>
+    <p class="fragment" style="font-size:46px;margin-top:56px"><strong>MCP</strong> é o contrato entre quem usa (host) e quem oferece (server).</p>
+  </div>
+</section>
+
+<!-- ============================ 19. Modelo mental ============================ -->
+<section data-background-color="#F2F1F0" data-auto-animate>
+  <div class="card-bg"></div><img class="frame" src="assets/card.png" alt="">
+  <div class="content">
+    <h2 data-id="t">Modelo mental</h2>
+    <div class="arch" data-id="arch">
+      <div class="layer host" data-id="host"><span class="lab">HOST</span></div>
+      <div class="layer client" data-id="client"><span class="lab">MCP Client</span></div>
+      <div class="wire"></div><div class="wlab">JSON-RPC</div>
+      <div class="layer server" data-id="server"><span class="lab">MCP SERVER</span>
+        <div class="prim" style="top:96px;background:var(--blue-p)">Tools</div>
+        <div class="prim" style="top:216px;background:var(--green-p)">Resources</div>
+        <div class="prim" style="top:336px;background:var(--yellow-p)">Prompts</div>
+      </div>
+      <div class="wire2"></div>
+      <div class="layer ext" data-id="ext"><span class="lab">mundo</span>
+        <div style="position:absolute;left:26px;top:100px;font-size:40px;line-height:1.9">APIs<br>DB<br>arquivos<br>serviços</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 20. Host ============================ -->
+<section data-background-color="#F2F1F0" data-auto-animate>
+  <div class="card-bg"></div><img class="frame" src="assets/card.png" alt="">
+  <div class="content">
+    <h2 data-id="t">Host</h2>
+    <div class="sub">A aplicação onde o agente vive</div>
+    <div class="arch f-host" data-id="arch" style="transform:scale(.82);transform-origin:top left">
+      <div class="layer host" data-id="host"><span class="lab">HOST</span>
+        <div style="position:absolute;left:26px;top:86px;display:flex;flex-wrap:wrap;gap:12px;width:560px">
+          <span class="tag">Claude Code</span><span class="tag">GitHub Copilot</span><span class="tag">Codex</span><span class="tag">IDE</span><span class="tag">agente próprio</span>
+        </div>
+      </div>
+      <div class="layer client" data-id="client"><span class="lab">MCP Client</span></div>
+      <div class="wire"></div><div class="wlab">JSON-RPC</div>
+      <div class="layer server" data-id="server"><span class="lab">MCP SERVER</span></div>
+      <div class="wire2"></div>
+      <div class="layer ext" data-id="ext"><span class="lab">mundo</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 21. Client ============================ -->
+<section data-background-color="#F2F1F0" data-auto-animate>
+  <div class="card-bg"></div><img class="frame" src="assets/card.png" alt="">
+  <div class="content">
+    <h2 data-id="t">Client</h2>
+    <div class="sub">A camada dentro do Host que implementa a comunicação MCP com um servidor</div>
+    <div class="arch f-client" data-id="arch" style="transform:scale(.82);transform-origin:top left">
+      <div class="layer host" data-id="host"><span class="lab">HOST</span></div>
+      <div class="layer client" data-id="client"><span class="lab">MCP Client</span>
+        <div style="position:absolute;left:26px;top:80px;font:500 28px var(--mono)">tools/list · tools/call<br>resources/read · prompts/get</div>
+      </div>
+      <div class="wire"></div><div class="wlab">JSON-RPC</div>
+      <div class="layer server" data-id="server"><span class="lab">MCP SERVER</span></div>
+      <div class="wire2"></div>
+      <div class="layer ext" data-id="ext"><span class="lab">mundo</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 22. Server ============================ -->
+<section data-background-color="#F2F1F0" data-auto-animate>
+  <div class="card-bg"></div><img class="frame" src="assets/card.png" alt="">
+  <div class="content">
+    <h2 data-id="t">Server</h2>
+    <div class="sub">Expõe capabilities e contexto a hosts compatíveis. Hoje: <strong>DevBrain MCP</strong></div>
+    <div class="arch f-server" data-id="arch" style="transform:scale(.82);transform-origin:top left">
+      <div class="layer host" data-id="host"><span class="lab">HOST</span></div>
+      <div class="layer client" data-id="client"><span class="lab">MCP Client</span></div>
+      <div class="wire"></div><div class="wlab">JSON-RPC</div>
+      <div class="layer server" data-id="server"><span class="lab">DevBrain MCP</span>
+        <div class="prim" style="top:96px;background:var(--blue-p);font-size:34px">check-pr-readiness</div>
+        <div class="prim" style="top:216px;background:var(--green-p);font-size:34px">repo://engineering-guidelines</div>
+        <div class="prim" style="top:336px;background:var(--yellow-p);font-size:34px">review-feature</div>
+      </div>
+      <div class="wire2"></div>
+      <div class="layer ext" data-id="ext"><span class="lab">mundo</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 23. As três primitives ============================ -->
+<section data-background-color="#F2F1F0">
+  <div class="card-bg"></div><img class="frame" src="assets/card.png" alt="">
+  <div class="content">
+    <h2>As três primitives</h2>
+    <div class="grid3" style="width:1560px">
+      <div class="box b fragment">
+        <div class="icon b" style="background:#fff"><svg viewBox="0 0 24 24" fill="none" stroke="#1E1E1E" stroke-width="2"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/></svg></div>
+        <h3>Tool</h3><p style="font-size:40px">executa</p>
+        <p style="margin-top:22px" class="muted">quem decide: <strong>o modelo</strong></p>
+      </div>
+      <div class="box g fragment">
+        <div class="icon g" style="background:#fff"><svg viewBox="0 0 24 24" fill="none" stroke="#1E1E1E" stroke-width="2"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h8M9 17h8"/></svg></div>
+        <h3>Resource</h3><p style="font-size:40px">lê contexto</p>
+        <p style="margin-top:22px" class="muted">quem decide: <strong>o host / usuário</strong></p>
+      </div>
+      <div class="box y fragment">
+        <div class="icon y" style="background:#fff"><svg viewBox="0 0 24 24" fill="none" stroke="#1E1E1E" stroke-width="2"><path d="M4 4h16v12H8l-4 4z"/><path d="M8 9h8M8 12h5"/></svg></div>
+        <h3>Prompt</h3><p style="font-size:40px">oferece workflow/template</p>
+        <p style="margin-top:22px" class="muted">quem decide: <strong>o usuário</strong></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 24. Seção 03 How ============================ -->
+<section data-background-color="#F2F1F0">
+  <div class="card-bg"></div><img class="frame" src="assets/secao.png" alt="">
+  <div class="sec-num">03</div>
+  <div class="sec-title">How</div>
+  <div class="sec-sub">Como Tools, Resources e Prompts funcionam</div>
+  <div class="track"><span class="done">WHY</span><span class="done">WHAT</span><span class="on">HOW</span><span>BUILD</span><span>TEST</span><span>USE</span><span>ENGINEER</span></div>
+</section>
+
+<!-- ============================ 25. Tool ============================ -->
+<section data-background-color="#F2F1F0">
+  <div class="card-bg"></div><img class="frame" src="assets/card.png" alt="">
+  <div class="content">
+    <h2>Tool</h2>
+    <div class="row">
+      <div style="width:560px;font-size:46px;line-height:1.35">
+        <p style="margin:0 0 30px">Uma capability executável, com</p>
+        <div class="fragment" style="display:flex;flex-direction:column;gap:16px">
+          <span class="pill b">nome semântico</span><span class="pill g">schema explícito</span><span class="pill y">efeito controlado</span>
+        </div>
+      </div>
+      <div class="code fragment" style="width:980px">
+        <div class="bar"><i></i><i></i><i></i>tools/list</div>
+        <pre><code class="language-json" data-trim>
+{
+  "name": "check-pr-readiness",
+  "title": "Checar prontidão do PR",
+  "inputSchema": {"title": "string",
+                  "changed_files": "string[]",
+                  "has_tests": "boolean"},
+  "annotations": {"readOnlyHint": true}
+}
+        </code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 26. Resource ============================ -->
+<section data-background-color="#F2F1F0">
+  <div class="card-bg"></div><img class="frame" src="assets/card.png" alt="">
+  <div class="content">
+    <h2>Resource</h2>
+    <div class="row">
+      <div style="width:560px;font-size:46px;line-height:1.35">
+        <p style="margin:0 0 30px">Contexto legível com <strong>URI estável</strong></p>
+        <div class="fragment box g mono" style="font-size:30px;padding:18px 24px">repo://engineering-guidelines</div>
+        <p class="fragment muted" style="font-size:38px;margin-top:30px">Ninguém executa um resource. Ele é lido, como um arquivo com endereço.</p>
+      </div>
+      <div class="win fragment" style="width:960px">
+        <div class="bar"><i></i><i></i><i></i>resources/read</div>
+        <div style="padding:26px 32px;font-size:36px;line-height:1.5">
+          <div style="font-weight:700;font-size:42px;margin-bottom:12px">Diretrizes de engenharia</div>
+          <div><span class="pill y" style="font-size:29px;padding:4px 14px">R1</span> título em Conventional Commits</div>
+          <div><span class="pill r" style="font-size:29px;padding:4px 14px">R2</span> área de alto risco exige testes</div>
+          <div><span class="pill b" style="font-size:29px;padding:4px 14px">R3</span> contrato público exige docs</div>
+          <div><span class="pill g" style="font-size:29px;padding:4px 14px">R4</span> PR grande: dividir</div>
+          <div><span class="pill" style="font-size:29px;padding:4px 14px">R5</span> dependência: changelog e licença</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 27. Prompt ============================ -->
+<section data-background-color="#F2F1F0">
+  <div class="card-bg"></div><img class="frame" src="assets/card.png" alt="">
+  <div class="content">
+    <h2>Prompt</h2>
+    <div class="row">
+      <div style="width:560px;font-size:46px;line-height:1.35">
+        <p style="margin:0 0 30px">Um workflow/template reutilizável exposto pelo servidor</p>
+        <div class="fragment box y mono" style="font-size:30px;padding:18px 24px">review_feature(feature_name, risk)</div>
+      </div>
+      <div class="win fragment" style="width:960px">
+        <div class="bar"><i></i><i></i><i></i>prompts/get</div>
+        <div style="padding:26px 32px;display:flex;flex-direction:column;gap:20px">
+          <div class="box y" style="padding:18px 24px"><p class="mono" style="font-size:26px;margin-bottom:6px">role: user</p><p style="font-size:36px">Revise esta mudança: login com passkey. Use as ferramentas DevBrain e aponte riscos.</p></div>
+          <div class="box g" style="padding:18px 24px"><p class="mono" style="font-size:26px;margin-bottom:6px">role: user · EmbeddedResource</p><p style="font-size:36px">repo://engineering-guidelines</p></div>
+          <p class="muted" style="font-size:34px">O prompt não executa nada. Ele monta a conversa.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 28. Qual primitiva usar? ============================ -->
+<section data-background-color="#F2F1F0">
+  <div class="card-bg"></div><img class="frame" src="assets/card.png" alt="">
+  <div class="content">
+    <h2>Qual primitiva usar?</h2>
+    <div style="display:flex;flex-direction:column;gap:26px;width:1400px">
+      <div class="flow fragment"><div class="step" style="width:680px;text-align:left">Executar algo?</div><span class="arrow">→</span><div class="step" style="background:var(--blue-p);width:420px">Tool</div></div>
+      <div class="flow fragment"><div class="step" style="width:680px;text-align:left">Ler algo identificável?</div><span class="arrow">→</span><div class="step" style="background:var(--green-p);width:420px">Resource</div></div>
+      <div class="flow fragment"><div class="step" style="width:680px;text-align:left">Iniciar uma revisão guiada?</div><span class="arrow">→</span><div class="step" style="background:var(--yellow-p);width:420px">Prompt</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 29. Protocolo != transporte ============================ -->
+<section data-background-color="#FFE79C">
+  <img class="frame" src="assets/amarelo.png" alt="">
+  <div class="brand-mcp">MCP</div><div class="brand-pill">DevFest 2026</div>
+  <div class="lead">
+    <p><strong>Protocolo ≠ transporte.</strong> MCP é o protocolo; stdio e Streamable HTTP são apenas os transportes.</p>
+    <div class="tags fragment"><span class="tag">MCP = o que se diz</span><span class="tag">transporte = por onde passa</span></div>
+  </div>
+</section>
+
+<!-- ============================ 30. stdio ============================ -->
+<section data-background-color="#F2F1F0">
+  <div class="card-bg"></div><img class="frame" src="assets/card.png" alt="">
+  <div class="content">
+    <h2>stdio</h2>
+    <div class="flow fragment">
+      <div class="step" style="background:var(--blue-p)">Host</div><span class="arrow">→</span>
+      <div class="step mono" style="font-size:34px">stdin / stdout</div><span class="arrow">→</span>
+      <div class="step" style="background:var(--yellow-p)">processo Python</div><span class="arrow">→</span>
+      <div class="step" style="background:var(--green-p)">MCP Server</div>
+    </div>
+    <div class="row" style="margin-top:56px">
+      <div class="box p fragment" style="width:740px"><h3>Ótimo para</h3><p style="font-size:40px">desenvolvimento local e processos filhos: o host inicia o servidor.</p></div>
+      <div class="box r fragment" style="width:740px"><h3>Cuidado</h3><p style="font-size:40px">stdout é do protocolo. Um <span class="mono">print()</span> quebra a conversa; log vai para stderr.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 31. Streamable HTTP ============================ -->
+<section data-background-color="#F2F1F0">
+  <div class="card-bg"></div><img class="frame" src="assets/card.png" alt="">
+  <div class="content">
+    <h2>Streamable HTTP</h2>
+    <div class="row" style="align-items:center">
+      <div style="display:flex;flex-direction:column;gap:18px" class="fragment">
+        <div class="step pill b" style="width:300px;text-align:center">Agent A</div>
+        <div class="step pill b" style="width:300px;text-align:center">Agent B</div>
+        <div class="step pill b" style="width:300px;text-align:center">Agent C</div>
+      </div>
+      <div class="fragment" style="font:700 56px var(--sans);padding:0 10px">→</div>
+      <div class="box y fragment" style="width:360px;text-align:center"><h3 class="mono" style="font-size:42px">HTTPS /mcp</h3><p>POST stateless</p></div>
+      <div class="fragment" style="font:700 56px var(--sans);padding:0 10px">→</div>
+      <div class="box g fragment" style="width:360px;text-align:center"><h3>MCP Server</h3><p>cloud ou rede interna</p></div>
+    </div>
+    <p class="fragment" style="font-size:44px;margin-top:56px">Bom para cloud, infraestrutura compartilhada e múltiplos clientes.</p>
+  </div>
+</section>
+
+<!-- ============================ 32. Cuidado com tutoriais ============================ -->
+<section data-background-color="#FED7D7">
+  <img class="frame" src="assets/vermelho.png" alt="">
+  <div class="brand-mcp">MCP</div><div class="brand-pill">DevFest 2026</div>
+  <div class="lead" style="font-size:52px">
+    <p><strong>Cuidado</strong> com tutoriais antigos: não trate FastMCP v1, SSE legado ou fluxos session-oriented como a API principal atual. Confira a versão da documentação.</p>
+    <div class="tags fragment"><span class="tag">✕ FastMCP v1</span><span class="tag">✕ SSE legado</span><span class="tag">✓ MCPServer (SDK v2)</span></div>
+  </div>
+</section>
+
+<!-- ============================ 33. Designing APIs for AI ============================ -->
+<section data-background-color="#F2F1F0">
+  <img class="frame" src="assets/cinza.png" alt="">
+  <div class="brand-mcp">MCP</div><div class="brand-pill">DevFest 2026</div>
+  <div class="lead">
+    <p><strong>Designing APIs for AI:</strong> o consumidor da interface pode ser um modelo. Nome, descrição e schema também fazem parte da UX.</p>
+    <div class="tags fragment"><span class="tag">nome</span><span class="tag">descrição</span><span class="tag">schema</span><span class="tag">erro legível</span></div>
+  </div>
+</section>
+
+<!-- ============================ 34. Tool design ============================ -->
+<section data-background-color="#C3ECF6">
+  <img class="frame" src="assets/azul.png" alt="">
+  <div class="brand-mcp">MCP</div><div class="brand-pill">DevFest 2026</div>
+  <div class="lead fragment fade-out" data-fragment-index="1">
+    <p><strong>Tool design:</strong> intencional, estreita, determinística, combinável, com nome semântico e o menor blast radius possível.</p>
+  </div>
+  <div class="alt fragment" data-fragment-index="1" style="display:flex;flex-direction:column;justify-content:center;gap:30px">
+    <div class="box r"><p class="mono" style="font-size:40px;color:var(--ink)">execute(query: str)</p><p style="font-size:36px;margin-top:8px">faz qualquer coisa, então o modelo não sabe quando usar</p></div>
+    <div style="font:700 56px var(--sans);text-align:center">↓</div>
+    <div class="box g"><p class="mono" style="font-size:36px;color:var(--ink)">check-pr-readiness(title, changed_files, has_tests)</p><p style="font-size:36px;margin-top:8px">uma intenção, schema estreito, somente leitura</p></div>
+  </div>
+</section>
+
+<!-- ============================ 35. Schemas com Python ============================ -->
+<section data-background-color="#F2F1F0">
+  <div class="card-bg"></div><img class="frame" src="assets/card.png" alt="">
+  <div class="content">
+    <h2>Schemas com Python</h2>
+    <div class="row" style="align-items:center">
+      <div class="code" style="width:760px">
+        <div class="bar"><i></i><i></i><i></i>type hints</div>
+        <pre><code class="language-python" data-trim>
+def check_pr_readiness(
+    title: str,
+    changed_files: list[str],
+    has_tests: bool,
+) -> PRReadiness:
+    ...
+        </code></pre>
+      </div>
+      <div class="fragment" style="font:700 64px var(--sans)">→</div>
+      <div class="code fragment" style="width:680px">
+        <div class="bar"><i></i><i></i><i></i>inputSchema</div>
+        <pre><code class="language-json" data-trim>
+{
+  "title": {"type": "string"},
+  "changed_files": {
+    "type": "array",
+    "items": {"type": "string"}
+  },
+  "has_tests": {"type": "boolean"}
+}
+        </code></pre>
+      </div>
+    </div>
+    <p class="fragment" style="font-size:42px;margin-top:40px">Type hints também são contrato. <strong>Pydantic</strong> quando um modelo estruturado melhorar o exemplo: o retorno vira <span class="mono">outputSchema</span>.</p>
+  </div>
+</section>
+
+<!-- ============================ 36. Seção 04 Build ============================ -->
+<section data-background-color="#F2F1F0">
+  <div class="card-bg"></div><img class="frame" src="assets/secao.png" alt="">
+  <div class="sec-num">04</div>
+  <div class="sec-title">Build</div>
+  <div class="sec-sub">Construindo o DevBrain MCP na prática</div>
+  <div class="track"><span class="done">WHY</span><span class="done">WHAT</span><span class="done">HOW</span><span class="on">BUILD</span><span>TEST</span><span>USE</span><span>ENGINEER</span></div>
+</section>
+
+<!-- ============================ 37. DevBrain ============================ -->
+<section data-background-color="#C1F8C0">
+  <img class="frame" src="assets/verde.png" alt="">
+  <div class="brand-mcp">MCP</div><div class="brand-pill">DevFest 2026</div>
+  <div class="lead" style="font-size:50px">
+    <p><strong>DevBrain:</strong> um projeto hands-on, um MCP que ajuda agentes de código a entender regras de engenharia e decidir se uma mudança está pronta para PR.</p>
+    <div class="tags fragment"><span class="tag">ready: true / false</span><span class="tag">risk: low · medium · high</span></div>
+  </div>
+</section>
+
+<!-- ============================ 38. Estrutura do repositório ============================ -->
+<section data-background-color="#F2F1F0">
+  <div class="card-bg"></div><img class="frame" src="assets/card.png" alt="">
+  <div class="content">
+    <h2>Estrutura do repositório</h2>
+    <div class="row" style="align-items:center;gap:34px">
+      <div class="box b fragment" style="width:420px"><p class="mono" style="font-size:29px">adapters/inbound</p><h3>adapter MCP</h3><p>tools · resources · prompts</p></div>
+      <div class="fragment" style="font:700 56px var(--sans)">→</div>
+      <div class="box y fragment" style="width:400px"><p class="mono" style="font-size:29px">application</p><h3>use cases</h3><p>orquestra, sem saber de MCP</p></div>
+      <div class="fragment" style="font:700 56px var(--sans)">→</div>
+      <div class="box g fragment" style="width:400px"><p class="mono" style="font-size:29px">domain</p><h3>regras R1..R5</h3><p>puro, testável em ms</p></div>
+    </div>
+    <div class="row fragment" style="margin-top:34px;align-items:center;gap:34px">
+      <div style="width:420px"></div><div style="width:56px"></div>
+      <div style="width:400px;text-align:center;font:700 56px var(--sans)">↓</div>
+    </div>
+    <div class="row fragment" style="gap:34px">
+      <div style="width:420px"></div><div style="width:56px"></div>
+      <div class="box p" style="width:836px"><p class="mono" style="font-size:29px">adapters/outbound</p><h3>adapters de saída</h3><p>diretrizes estáticas · git somente leitura</p></div>
+    </div>
+  </div>
+  <div class="foot fragment"><strong style="color:var(--ink)">Hexagonal, pequena e explícita.</strong></div>
+</section>
+
+<!-- ============================ 39. Criando o projeto com uv ============================ -->
+<section data-background-color="#F2F1F0">
+  <div class="card-bg"></div><img class="frame" src="assets/card.png" alt="">
+  <div class="content">
+    <h2>Criando o projeto com uv</h2>
+    <div class="term code" style="width:1500px">
+      <div class="bar"><i></i><i></i><i></i>devbrain-mcp-repo</div>
+      <div style="padding:22px 0">
+        <div class="line fragment"><span class="ps">$</span> uv python install 3.12</div>
+        <div class="line fragment"><span class="ps">$</span> uv sync</div>
+        <div class="line fragment"><span class="ps">$</span> uv run pytest -q</div>
+        <div class="line out fragment">35 passed in 2.4s</div>
+        <div class="line fragment"><span class="ps">$</span> uv run mcp dev src/devbrain_mcp/server.py</div>
+        <div class="line out fragment">MCP Inspector Web is up and running at http://127.0.0.1:6274</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 40. Primeiro MCP Server ============================ -->
+<section data-background-color="#F2F1F0">
+  <div class="card-bg"></div><img class="frame" src="assets/card.png" alt="">
+  <div class="content">
+    <h2>Primeiro MCP Server</h2>
+    <div class="row">
+      <div class="code" style="width:1060px">
+        <div class="bar"><i></i><i></i><i></i>adapters/inbound/mcp.py</div>
+        <pre><code class="language-python" data-trim>
+from mcp.server import MCPServer
+
+mcp = MCPServer(
+    "devbrain",
+    title="DevBrain",
+    version="1.1.0",
+    instructions=INSTRUCTIONS,
+)
+register_tools(mcp, use_cases)
+register_resources(mcp, use_cases)
+register_prompts(mcp, use_cases)
+        </code></pre>
+      </div>
+      <div style="width:440px;display:flex;flex-direction:column;gap:22px">
+        <div class="box b"><h3>name + version</h3><p>aparecem na descoberta</p></div>
+        <div class="box y"><h3>instructions</h3><p>quando usar o servidor inteiro</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 41. Primeira Tool real ============================ -->
+<section data-background-color="#F2F1F0">
+  <div class="card-bg"></div><img class="frame" src="assets/card.png" alt="">
+  <div class="content">
+    <h2>Primeira Tool real</h2>
+    <div class="row">
+      <div class="code" style="width:1180px">
+        <div class="bar"><i></i><i></i><i></i>adapters/inbound/tools.py</div>
+        <pre style="font-size:27px"><code class="language-python" data-trim>
+@mcp.tool(
+    name="check-pr-readiness",
+    annotations=READ_ONLY_LOCAL_TOOL,
+)
+def check_pr_readiness(
+    title: Annotated[str, Field(description="Título do PR.")],
+    changed_files: FilePaths,
+    has_tests: bool,
+    has_docs: bool = False,
+) -> PRReadiness:
+    """Avalia se uma mudança está pronta para abrir um PR."""
+    return use_cases.check_pr_readiness(
+        title, changed_files, has_tests, has_docs
+    )
+        </code></pre>
+      </div>
+      <div style="width:380px;display:flex;flex-direction:column;gap:16px">
+        <div class="box b fragment" style="padding:18px 24px"><h3>name</h3><p>o que o modelo vê</p></div>
+        <div class="box g fragment" style="padding:18px 24px"><h3>docstring</h3><p>vira a description</p></div>
+        <div class="box y fragment" style="padding:18px 24px"><h3>type hints</h3><p>viram o inputSchema</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 42. Resource: guidelines ============================ -->
+<section data-background-color="#F2F1F0">
+  <div class="card-bg"></div><img class="frame" src="assets/card.png" alt="">
+  <div class="content">
+    <h2>Resource: guidelines</h2>
+    <div class="row">
+      <div class="code" style="width:1060px">
+        <div class="bar"><i></i><i></i><i></i>adapters/inbound/resources.py</div>
+        <pre><code class="language-python" data-trim>
+@mcp.resource(
+    "repo://engineering-guidelines",
+    name="engineering-guidelines",
+    mime_type="text/markdown",
+)
+def engineering_guidelines() -> str:
+    """Regras que o DevBrain aplica, com o porquê."""
+    return use_cases.get_engineering_guidelines()
+        </code></pre>
+      </div>
+      <div class="box g fragment" style="width:440px"><h3>URI estável</h3><p>o host lista, lê e anexa como contexto. Somente leitura.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 43. Prompt: review feature ============================ -->
+<section data-background-color="#F2F1F0">
+  <div class="card-bg"></div><img class="frame" src="assets/card.png" alt="">
+  <div class="content">
+    <h2>Prompt: review feature</h2>
+    <div class="row">
+      <div class="code" style="width:1160px">
+        <div class="bar"><i></i><i></i><i></i>adapters/inbound/prompts.py</div>
+        <pre style="font-size:28px"><code class="language-python" data-trim>
+@mcp.prompt(
+    name="review-feature",
+    title="Revisar feature",
+)
+def review_feature(
+    summary: Annotated[str, Field(description="O que faz.")],
+) -> str:
+    """Prepara uma revisão com as tools DevBrain."""
+    return use_cases.build_review_prompt(summary)
+        </code></pre>
+      </div>
+      <div class="box y fragment" style="width:380px"><h3>Quem escolhe?</h3><p>o usuário, num menu ou num <span class="mono">/comando</span> do host.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 44. O código está no GitHub ============================ -->
+<section data-background-color="#F2F1F0">
+  <div class="card-bg"></div><img class="frame" src="assets/card.png" alt="">
+  <div class="content">
+    <h2>Todo esse código está no GitHub</h2>
+    <p class="sub">Clone, rode e acompanhe com o material do aluno.</p>
+    <div class="row" style="align-items:flex-start;gap:60px">
+      <div style="width:1080px">
+        <div class="pill mono" style="font-size:31px;padding:16px 30px">github.com/mateusememe/megabrain-context-protocol</div>
+        <div style="display:flex;flex-direction:column;gap:18px;margin-top:30px">
+          <div class="box y fragment" style="padding:18px 30px"><h3 style="font-size:38px;margin-bottom:6px">GUIA-ALUNO.md</h3><p style="font-size:32px">o passo a passo do workshop</p></div>
+          <div class="box b fragment" style="padding:18px 30px"><h3 style="font-size:38px;margin-bottom:6px">devbrain-mcp-repo/</h3><p style="font-size:32px">o servidor completo, com os testes</p></div>
+          <div class="box g fragment" style="padding:18px 30px"><h3 style="font-size:38px;margin-bottom:6px">docs/roteiro-de-testes.md</h3><p style="font-size:32px">os testes com o MCP Inspector</p></div>
+        </div>
+      </div>
+      <div class="box p" style="width:400px;text-align:center;padding:28px">
+        <img src="assets/qr-repo.svg" alt="QR code do repositório no GitHub" style="width:340px;height:340px;display:block;margin:0 auto;border-radius:12px">
+        <p style="margin-top:18px">aponte a câmera</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 45. Seção 05 Test ============================ -->
+<section data-background-color="#F2F1F0">
+  <div class="card-bg"></div><img class="frame" src="assets/secao.png" alt="">
+  <div class="sec-num">05</div>
+  <div class="sec-title">Test</div>
+  <div class="sec-sub">Testando capabilities sem depender de um LLM</div>
+  <div class="track"><span class="done">WHY</span><span class="done">WHAT</span><span class="done">HOW</span><span class="done">BUILD</span><span class="on">TEST</span><span>USE</span><span>ENGINEER</span></div>
+</section>
+
+<!-- ============================ 46. MCP Inspector ============================ -->
+<section data-background-color="#F2F1F0">
+  <div class="card-bg"></div><img class="frame" src="assets/card.png" alt="">
+  <div class="content">
+    <h2>MCP Inspector</h2>
+    <div class="sub">Debug de MCP sem LLM: schemas, entradas, saídas e erros</div>
+    <div class="win" style="width:1560px">
+      <div class="bar"><i></i><i></i><i></i>127.0.0.1:6274 · devbrain · Connected</div>
+      <div class="tabs"><span class="on">Tools</span><span>Resources</span><span>Prompts</span><span style="margin-left:auto;border-left:3px solid var(--ink);border-right:0">Messages</span></div>
+      <div class="row" style="padding:26px;gap:26px">
+        <div style="width:540px;display:flex;flex-direction:column;gap:14px">
+          <div class="box b" style="padding:16px 22px"><p class="mono" style="font-size:31px;color:var(--ink)">check-pr-readiness</p></div>
+          <div class="box" style="padding:16px 22px"><p class="mono" style="font-size:31px;color:var(--ink)">analyze-changed-files</p></div>
+          <div class="box" style="padding:16px 22px"><p class="mono" style="font-size:31px;color:var(--ink)">inspect-branch-changes</p></div>
+        </div>
+        <div class="fragment" style="flex:1">
+          <pre class="mono" style="margin:0;font-size:31px;line-height:1.45;white-space:pre">{ "ready": false,
+  "risk": "high",
+  "checks": [ {"rule": "R2", "passed": false},
+              {"rule": "R3", "passed": false} ] }</pre>
+        </div>
+      </div>
+    </div>
+    
+  </div>
+</section>
+
+<!-- ============================ 47. Testing sem LLM ============================ -->
+<section data-background-color="#F2F1F0">
+  <div class="card-bg"></div><img class="frame" src="assets/card.png" alt="">
+  <div class="content">
+    <h2>Testing sem LLM</h2>
+    <div class="flow">
+      <div class="step" style="background:var(--yellow-p)">pytest</div><span class="arrow">→</span>
+      <div class="step" style="background:var(--blue-p)">MCP Client</div><span class="arrow">→</span>
+      <div class="step" style="background:var(--green-p)">MCP Server</div><span class="arrow">→</span>
+      <div class="step">Tool</div>
+    </div>
+    <div class="row" style="margin-top:40px;align-items:flex-start">
+      <div class="code fragment" style="width:1080px">
+        <div class="bar"><i></i><i></i><i></i>test/test_server.py (simplificado)</div>
+        <pre><code class="language-python" data-trim>
+async with Client(mcp) as client:
+    result = await client.call_tool(
+        "check-pr-readiness", PASSKEY
+    )
+
+data = result.structured_content
+assert data["ready"] is False
+assert data["risk"] == "high"
+        </code></pre>
+      </div>
+      <div class="box g fragment" style="width:420px;text-align:center"><div style="font:700 80px var(--sans)">35</div><p style="font-size:38px">testes, sem custo de modelo, flakiness ou rede</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 48. Seção 06 Use ============================ -->
+<section data-background-color="#F2F1F0">
+  <div class="card-bg"></div><img class="frame" src="assets/secao.png" alt="">
+  <div class="sec-num">06</div>
+  <div class="sec-title">Use</div>
+  <div class="sec-sub">Colocando um agente para usar o servidor</div>
+  <div class="track"><span class="done">WHY</span><span class="done">WHAT</span><span class="done">HOW</span><span class="done">BUILD</span><span class="done">TEST</span><span class="on">USE</span><span>ENGINEER</span></div>
+</section>
+
+<!-- ============================ 49. Agora entra o agente ============================ -->
+<section data-background-color="#FFE79C">
+  <img class="frame" src="assets/amarelo.png" alt="">
+  <div class="brand-mcp">MCP</div><div class="brand-pill">DevFest 2026</div>
+  <div class="lead fragment fade-out" data-fragment-index="1" style="font-size:50px">
+    <p><strong>Agora entra o agente:</strong> "Essa feature está pronta para PR?" O agente descobre a capability, chama a Tool, lê o Resource e interpreta a evidência.</p>
+  </div>
+  <div class="alt fragment" data-fragment-index="1" style="display:flex;flex-direction:column;justify-content:center;gap:22px">
+    <div class="check"><span class="dot b">1</span><div class="box" style="padding:18px 24px"><p class="mono" style="color:var(--ink);font-size:34px">tools/list</p><p>descobre</p></div></div>
+    <div class="check"><span class="dot r">2</span><div class="box" style="padding:18px 24px"><p class="mono" style="color:var(--ink);font-size:34px">tools/call check-pr-readiness</p><p>chama (você aprova)</p></div></div>
+    <div class="check"><span class="dot y">3</span><div class="box" style="padding:18px 24px"><p class="mono" style="color:var(--ink);font-size:34px">repo://engineering-guidelines</p><p>lê o porquê das regras</p></div></div>
+    <div class="check"><span class="dot g">4</span><div class="box" style="padding:18px 24px"><p class="mono" style="color:var(--ink);font-size:34px">ready: false · R2 · R3</p><p>interpreta a evidência</p></div></div>
+  </div>
+</section>
+
+<!-- ============================ 50. Um server, vários hosts ============================ -->
+<section data-background-color="#F2F1F0">
+  <div class="card-bg"></div><img class="frame" src="assets/card.png" alt="">
+  <div class="content">
+    <h2>Um server, vários hosts</h2>
+    <div style="position:relative;width:1560px;height:480px">
+      <svg width="1560" height="480" style="position:absolute;inset:0" aria-hidden="true">
+        <g stroke="#1E1E1E" stroke-width="4" stroke-dasharray="10 10">
+          <line x1="780" y1="240" x2="170" y2="60"/><line x1="780" y1="240" x2="170" y2="420"/><line x1="780" y1="240" x2="780" y2="40"/><line x1="780" y1="240" x2="1390" y2="60"/><line x1="780" y1="240" x2="1390" y2="420"/>
+        </g>
+      </svg>
+      <div class="box y" style="position:absolute;left:600px;top:170px;width:360px;text-align:center"><h3>DevBrain</h3><p>um servidor MCP</p></div>
+      <span class="pill b fragment" style="position:absolute;left:30px;top:24px">Antigravity</span>
+      <span class="pill b fragment" style="position:absolute;left:30px;top:384px">Gemini CLI</span>
+      <span class="pill b fragment" style="position:absolute;left:650px;top:0">Claude Code</span>
+      <span class="pill b fragment" style="position:absolute;left:1200px;top:24px">GitHub Copilot</span>
+      <span class="pill b fragment" style="position:absolute;left:1280px;top:384px">Codex</span>
+    </div>
+    <p class="fragment" style="font-size:44px;margin-top:20px">Você não construiu uma integração Claude: você construiu uma <strong>capability MCP</strong>.</p>
+  </div>
+</section>
+
+<!-- ============================ 51. Local -> Remote ============================ -->
+<section data-background-color="#F2F1F0">
+  <div class="card-bg"></div><img class="frame" src="assets/card.png" alt="">
+  <div class="content">
+    <h2>Local → Remote</h2>
+    <div class="grid2" style="width:1500px">
+      <div class="box b fragment"><p class="mono" style="font-size:31px">uv run devbrain-mcp</p><h3 style="font-size:52px;margin-top:10px">Local: stdio</h3><p style="font-size:38px">o host abre o processo; lê o seu git</p></div>
+      <div class="box g fragment"><p class="mono" style="font-size:31px">POST https://…/mcp</p><h3 style="font-size:52px;margin-top:10px">Remote: Streamable HTTP</h3><p style="font-size:38px">endpoint compartilhado; sem o seu repositório</p></div>
+    </div>
+    <p class="fragment" style="font-size:46px;margin-top:50px">Mesmo servidor, outra superfície operacional.</p>
+  </div>
+</section>
+
+<!-- ============================ 52. Boss fight ============================ -->
+<section data-background-color="#FED7D7">
+  <img class="frame" src="assets/vermelho.png" alt="">
+  <div class="brand-mcp">MCP</div><div class="brand-pill">DevFest 2026</div>
+  <div class="lead" style="font-size:50px">
+    <p><strong>Boss fight:</strong> peça ao agente para decidir se uma mudança está pronta para PR usando somente as capabilities do DevBrain MCP.</p>
+    <p class="fragment" style="margin-top:34px;font-weight:700">Build capabilities, not integrations.</p>
+  </div>
+</section>
+
+<!-- ============================ 53. Obrigado ============================ -->
+<section data-background-color="#4285F4">
+  <div class="over" style="left:204px;top:240px;padding:14px 46px;background:var(--blue-p);border:5px solid var(--ink);border-radius:999px;font:700 76px/1 var(--sans)">DevFest</div>
+  <div class="over" style="left:204px;top:372px;width:847px;height:376px;background:var(--blue-p);border:5px solid var(--ink);border-radius:44px;padding:40px 48px;box-sizing:border-box">
+    <div style="font:500 124px/1.05 var(--sans)">Obrigado!</div>
+    <div style="font:500 48px var(--sans);margin-top:30px">Q/A?</div>
+  </div>
+  <img class="over" src="assets/mascote.gif" alt="Mascote do DevFest" style="left:824px;top:123px;width:227px;height:227px">
+  <img class="over" src="assets/qr-mateus.jpg" alt="QR code do Mateus" style="left:1162px;top:353px;width:298px;height:298px;border-radius:12px">
+  <div class="over" style="left:1146px;top:672px;width:330px;text-align:center;color:#fff;font:500 40px/1.2 var(--sans)">Mateus<br>Mendonça</div>
+  <img class="over" src="assets/qr-bia.png" alt="QR code da Maria Beatriz" style="left:1561px;top:350px;width:298px;height:298px;border-radius:12px">
+  <div class="over" style="left:1545px;top:672px;width:330px;text-align:center;color:#fff;font:500 40px/1.2 var(--sans)">Maria Beatriz<br>França</div>
+</section>
+
+</div>
+</div>
+
+<script src="vendor/reveal/reveal.js"></script>
+<script src="vendor/reveal/plugin/highlight/highlight.js"></script>
+<script src="vendor/reveal/plugin/notes/notes.js"></script>
+<script>
+  Reveal.initialize({
+    width: 1920,
+    height: 1080,
+    margin: 0,
+    center: false,
+    hash: true,
+    hashOneBasedIndex: true,
+    slideNumber: 'c',
+    transition: 'fade',
+    backgroundTransition: 'fade',
+    autoAnimateDuration: 0.6,
+    // ?tudo mostra todos os fragmentos de uma vez (útil para revisar ou imprimir)
+    fragments: !/[?&]tudo/.test(location.search),
+    plugins: [RevealHighlight, RevealNotes]
+  });
+</script>
+</body>
+</html>
