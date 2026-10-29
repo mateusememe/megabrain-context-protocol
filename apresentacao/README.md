@@ -1,6 +1,6 @@
 # Slides da palestra
 
-Os slides de "MCP: MegaBrain Context Protocol", do DevFest 2026. São 54 slides feitos
+Os slides de "MCP: MegaBrain Context Protocol", do DevFest 2026. São 55 slides feitos
 em [reveal.js](https://revealjs.com/) sobre o template do DevFest, com os diagramas e
 o código que aparecem na aula.
 
